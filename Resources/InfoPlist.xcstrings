@@ -1,0 +1,23 @@
+{
+  "sourceLanguage" : "es",
+  "strings" : {
+    "NSBluetoothAlwaysUsageDescription" : {
+      "comment" : "Lo que dice el diálogo de macOS al pedir el permiso de Bluetooth",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "So you can hear the buttons on your Logitech mouse that Logi Options+ takes over."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para que oigas los botones de tu ratón Logitech que se queda Logi Options+."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

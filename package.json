@@ -1,0 +1,11 @@
+{
+  "name": "tics",
+  "private": true,
+  "scripts": {
+    "dev": "pkill -x Tics; scripts/build-app.sh debug && open build/Tics.app",
+    "build": "scripts/build-app.sh release",
+    "test": "swift test",
+    "icon": "swift scripts/icon.swift",
+    "logs": "log stream --style compact --predicate 'subsystem == \"com.yestoall.tics\"'"
+  }
+}
