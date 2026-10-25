@@ -165,6 +165,7 @@ final class AppState {
         mouse.onMouse = { [weak self] event in self?.play(event) }
         logitech.onButton = { [weak self] isDown in self?.playDiverted(isDown: isDown) }
         updateMonitors()
+        askPermissionAtLaunch()
 
         // Cada 2 s: mira si ya hay permiso, si los taps siguen vivos y si hay un ratón Logitech
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
@@ -238,6 +239,15 @@ final class AppState {
         guard plan.soundsDiverted else { return }
         audio.playClick(.diverted, isDown: isDown)
         if isDown, let vibration = plan.vibration(for: .diverted) { logitech.vibrate(vibration) }
+    }
+
+    /// Al abrirla sin permiso, lo pide: TICS no tiene ventana, y sin el diálogo de macOS quien la
+    /// acaba de instalar no ve nada hasta dar con el icono de la barra de menús. macOS solo lo enseña
+    /// la primera vez; si se deniega, queda el aviso del panel
+    private func askPermissionAtLaunch() {
+        let plan = listening
+        guard plan.listensToKeyboard || plan.listensToMouse, !CGPreflightListenEventAccess() else { return }
+        CGRequestListenEventAccess()
     }
 
     /// Añade Tics a la lista del permiso y abre esa pantalla de Ajustes
