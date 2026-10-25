@@ -4,7 +4,14 @@
 
 Make your Mac sound like a mechanical keyboard when you type, and like a mouse when you click.
 
-Version 0.1.0
+Version 0.1.1
+
+## Download
+
+**[Download TICS](https://github.com/yestoall/tics/releases/latest/download/TICS.dmg)**, free.
+Open the .dmg and drag TICS to Applications. It needs macOS 14 or later and works on Apple
+silicon and Intel Macs. The first time you open it, macOS asks for permission to listen to the
+keyboard.
 
 ## What it does
 
