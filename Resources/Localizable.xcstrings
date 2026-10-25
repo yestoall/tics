@@ -290,6 +290,22 @@
         }
       }
     },
+    "con": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "using"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "con"
+          }
+        }
+      }
+    },
     "Configurar ratón…": {
       "localizations": {
         "en": {
@@ -786,6 +802,22 @@
         }
       }
     },
+    "Sonido": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sound"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonido"
+          }
+        }
+      }
+    },
     "Sonidos": {
       "localizations": {
         "en": {
@@ -830,22 +862,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Suena"
-          }
-        }
-      }
-    },
-    "suenan como": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "sound like"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "suenan como"
           }
         }
       }
@@ -1230,22 +1246,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "seco"
-          }
-        }
-      }
-    },
-    "suena como": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "sounds like"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "suena como"
           }
         }
       }

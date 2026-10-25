@@ -1,15 +1,19 @@
 //· KeyName ·
 // Cómo se llama una tecla en los ajustes del teclado. Las que escriben, con lo que escriben en la
 // distribución de teclado del Mac (así sale la Ñ de un teclado español); las demás, con los
-// símbolos de los menús de macOS.
+// símbolos de los menús de macOS. El Control no: su ⌃ parece una punta de flecha, y se escribe CTRL.
 
 import Carbon.HIToolbox
 
 enum KeyName {
-    /// Un atajo, con los símbolos de sus modificadoras delante, como en los menús: ⌘A
+    /// Un atajo, con los símbolos de sus modificadoras delante, como en los menús: ⌘A. El Control,
+    /// con su nombre y separado: CTRL ⌘A
     static func of(_ chord: KeyChord) -> String {
-        chord.modifiers.symbols + of(chord.keyCode)
+        let symbols = chord.modifiers.subtracting(.control).symbols + of(chord.keyCode)
+        return chord.modifiers.contains(.control) ? "\(control) \(symbols)" : symbols
     }
+
+    private static let control = "CTRL"
 
     static func of(_ keyCode: UInt16) -> String {
         if let symbol = symbols[keyCode] { return symbol }
@@ -33,7 +37,7 @@ enum KeyName {
     /// Las modificadoras, que hay a los dos lados y cada una tiene su código
     private static let sided: [UInt16: (symbol: String, isLeft: Bool)] = [
         0x37: ("⌘", true), 0x36: ("⌘", false), 0x38: ("⇧", true), 0x3C: ("⇧", false),
-        0x3A: ("⌥", true), 0x3D: ("⌥", false), 0x3B: ("⌃", true), 0x3E: ("⌃", false),
+        0x3A: ("⌥", true), 0x3D: ("⌥", false), 0x3B: (control, true), 0x3E: (control, false),
     ]
 
     /// Escriben lo mismo que las de la fila de números o de signos: se dice de dónde son

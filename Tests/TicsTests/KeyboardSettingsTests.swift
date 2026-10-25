@@ -479,6 +479,13 @@ private let leftCmd: UInt16 = 0x37
     #expect(KeyName.of(KeyChord(keyCode: 0x4F, flags: cmd | shift)) == "⇧⌘F18")
 }
 
+@Test func elControlSeLlamaCtrlPorqueSuSimboloParecePuntaDeFlecha() {
+    let control = CGEventFlags.maskControl.rawValue
+    #expect(KeyName.of(KeyChord(keyCode: 0x30, flags: control)) == "CTRL ⇥")
+    #expect(KeyName.of(KeyChord(keyCode: keyA, flags: control | cmd)) == "CTRL ⌘A")
+    #expect(KeyName.of(KeyChord(0x3B)) == "CTRL de la izquierda")
+}
+
 @Test func unaTeclaMantenidaRepiteMasFlojoYElEspacioNo() throws {
     var sounds = KeyboardSounds(pack: try load("eg-oreo"), settings: KeyboardSettings(), sources: [:])
     #expect(sounds.sound(for: KeyEvent(keyCode: keyA, isDown: true))?.volume == 1)

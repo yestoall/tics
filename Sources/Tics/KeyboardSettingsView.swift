@@ -109,47 +109,82 @@ private struct ChangedGroupRow: View {
 
     var body: some View {
         VStack(spacing: 14) {
-            HStack(spacing: 12) {
+            HStack(alignment: .packPicker, spacing: 12) {
                 Text(group.title)
                     .font(.title3.bold())
-                    .frame(width: rowTitleWidth, alignment: .leading)
                     // Sin texto, macOS no enseña nada
                     .help(group == .wide ? Text("Return, borrar, Tab, Mayúsculas y Bloq Mayús") : Text(verbatim: ""))
-                Text(group == .space ? "suena como" : "suenan como")
-                    .foregroundStyle(.secondary)
-                    .linkingWords()
-                Picker("Pack", selection: Binding(
-                    get: { changed.packID },
-                    set: { editor.changePack(of: group, to: $0) }
-                )) {
-                    Text("Del pack").tag(String?.none)
-                    Divider()
-                    ForEach(packs) { Text($0.name).tag(String?.some($0.id)) }
-                }
-                .labelsHidden()
-                .frame(width: 170)
                 Spacer()
+                SoundPicker(
+                    packID: Binding(get: { changed.packID }, set: { editor.changePack(of: group, to: $0) }),
+                    packs: packs
+                )
             }
             HStack(spacing: 24) {
                 SettingSlider.pitch(changed.pitch, set: { editor.tune(group, pitch: $0) }, released: released)
                 SettingSlider.volume(changed.volume, set: { editor.tune(group, volume: $0) }, released: released)
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .sectionPadding()
         .background(Color.primary.opacity(0.06), in: .rect(cornerRadius: 12))
     }
 }
 
-/// Lo que ocupa el nombre de un grupo o de una tecla, a la izquierda de cada fila: el mismo en
-/// todas, para que los desplegables queden en columna
-private let rowTitleWidth: CGFloat = 130
+/// Una tecla cambiada, dibujada como una tecla: así se distingue de los grupos y del texto de la fila
+private struct KeyCap: View {
+    let name: String
+
+    var body: some View {
+        Text(verbatim: name)
+            .font(.title3.weight(.semibold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .frame(minWidth: 44)
+            .background(Color.primary.opacity(0.14), in: .rect(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.primary.opacity(0.28)))
+            // El canto de abajo, como el de una tecla de verdad
+            .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.2)).offset(y: 2))
+    }
+}
+
+/// El pack del que sale el sonido, con «Sonido» debajo
+private struct SoundPicker: View {
+    @Binding var packID: String?
+    let packs: [SoundPack]
+
+    var body: some View {
+        VStack(alignment: .trailing, spacing: 4) {
+            Picker("Pack", selection: $packID) {
+                Text("Del pack").tag(String?.none)
+                Divider()
+                ForEach(packs) { Text($0.name).tag(String?.some($0.id)) }
+            }
+            .labelsHidden()
+            // El resto de la fila se centra con el desplegable, no con el texto de debajo
+            .alignmentGuide(.packPicker) { $0[VerticalAlignment.center] }
+            Text("Sonido")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(width: 170)
+    }
+}
+
+extension VerticalAlignment {
+    /// El centro del desplegable del pack, en cada fila
+    private enum PackPicker: AlignmentID {
+        static func defaultValue(in context: ViewDimensions) -> CGFloat { context[VerticalAlignment.center] }
+    }
+
+    fileprivate static let packPicker = VerticalAlignment(PackPicker.self)
+}
 
 private extension View {
-    /// «suena como» entre el nombre y el pack: en una línea, aunque falte sitio, y con el mismo
-    /// ancho en singular y en plural
-    func linkingWords() -> some View {
-        fixedSize().frame(minWidth: 90, alignment: .leading)
+    /// El aire de cada sección, de los grupos y de las teclas. Arriba, algo menos que abajo
+    func sectionPadding() -> some View {
+        padding(.horizontal, 18).padding(.top, 12).padding(.bottom, 16)
     }
 }
 
@@ -181,52 +216,47 @@ private struct ChangedKeyRow: View {
                 SettingSlider.volume(changed.volume, set: { editor.tune(changed.key, volume: $0) }, released: released)
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
+        .sectionPadding()
         .background(Color.primary.opacity(isCapturingSource ? 0.12 : 0.06), in: .rect(cornerRadius: 12))
     }
 
-    /// La tecla, el pack y la tecla de ese pack
+    /// La tecla y su papelera, a la izquierda; a la derecha, el pack y la tecla de ese pack. Así el
+    /// desplegable queda en la misma columna que el de los grupos
     private var choice: some View {
-        HStack(spacing: 12) {
-            Text(verbatim: KeyName.of(changed.key))
-                .font(.title3.bold())
-                .frame(width: rowTitleWidth, alignment: .leading)
-            Text("suena como")
-                .foregroundStyle(.secondary)
-                .linkingWords()
-            Picker("Pack", selection: Binding(
-                get: { changed.packID },
-                set: { editor.changePack(of: changed.key, to: $0) }
-            )) {
-                Text("Del pack").tag(String?.none)
-                Divider()
-                ForEach(packs) { Text($0.name).tag(String?.some($0.id)) }
-            }
-            .labelsHidden()
-            .frame(width: 170)
-            Button { editor.capture(.source(of: changed.key)) } label: {
-                Group {
-                    if isCapturingSource {
-                        Text("Pulsa una tecla…")
-                    } else {
-                        Text(verbatim: KeyName.of(changed.sourceKey))
-                    }
-                }
-                .textCase(.uppercase)
-                .frame(minWidth: 90)
-            }
-            .buttonBorderShape(.capsule)
-            .glassButton()
-            .help(Text("Pulsa teclas del pack hasta dar con la que te guste"))
-            .disabled(changed.packID == nil)
-            Spacer()
+        HStack(alignment: .packPicker, spacing: 12) {
+            KeyCap(name: KeyName.of(changed.key))
             Button { editor.remove(changed.key) } label: {
-                Image(systemName: "xmark")
+                Image(systemName: "trash")
             }
             .buttonStyle(.borderless)
             .help(Text("Quitar"))
             .accessibilityLabel(Text("Quitar"))
+            Spacer()
+            // La tecla de ese pack que suena en esta. Solo con un pack elegido: con «Del pack» es la
+            // suya, y el botón sería un duplicado
+            if changed.packID != nil {
+                Text("con")
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+                Button { editor.capture(.source(of: changed.key)) } label: {
+                    Group {
+                        if isCapturingSource {
+                            Text("Pulsa una tecla…")
+                        } else {
+                            Text(verbatim: KeyName.of(changed.sourceKey))
+                        }
+                    }
+                    .textCase(.uppercase)
+                    .frame(minWidth: 70)
+                }
+                .buttonBorderShape(.capsule)
+                .glassButton()
+                .help(Text("Pulsa teclas del pack hasta dar con la que te guste"))
+            }
+            SoundPicker(
+                packID: Binding(get: { changed.packID }, set: { editor.changePack(of: changed.key, to: $0) }),
+                packs: packs
+            )
         }
     }
 }
