@@ -4,11 +4,6 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
-	<key>CFBundleLocalizations</key>
-	<array>
-		<string>en</string>
-		<string>es</string>
-	</array>
 	<key>CFBundleDisplayName</key>
 	<string>TICS</string>
 	<key>CFBundleExecutable</key>
@@ -17,20 +12,25 @@
 	<string>AppIcon</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.yestoall.tics</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>en</string>
+		<string>es</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>TICS</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.1.1</string>
+	<string>0.1.2</string>
 	<key>CFBundleVersion</key>
-	<string>2</string>
+	<string>3</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>So you can hear the buttons on your Logitech mouse that Logi Options+ takes over.</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>So you can hear the buttons on your Logitech mouse that Logi Options+ takes over.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 Nacho Rapallo</string>
 </dict>
