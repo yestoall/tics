@@ -6,6 +6,10 @@ Tu Mac suena como un teclado mecánico al teclear, y como un ratón al hacer cli
 
 Versión 0.1.1
 
+[![Mira TICS en YouTube, con sonido](https://img.youtube.com/vi/_GZCnr1pWfg/maxresdefault.jpg)](https://youtu.be/_GZCnr1pWfg)
+
+**[Míralo en YouTube](https://youtu.be/_GZCnr1pWfg)**, con el sonido puesto.
+
 ## Descarga
 
 **[Descarga TICS](https://github.com/yestoall/tics/releases/latest/download/TICS.dmg)**, gratis.
