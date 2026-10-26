@@ -38,8 +38,12 @@ que elijas.
 ## Privacidad
 
 TICS necesita el permiso **Monitorización de los dispositivos de entrada** para saber qué tecla
-pulsas y elegir su sonido. Solo escucha: no guarda nada de lo que escribes ni dónde haces clic, y
-no se conecta a internet.
+pulsas y elegir su sonido. Solo escucha: no guarda nada de lo que escribes ni dónde haces clic.
+
+TICS solo se conecta a internet al abrirse y luego una vez al día, para preguntar a GitHub el
+número de la última versión, y no manda nada más. Si hay una más nueva, te lo dice el panel y el
+icono de la barra lleva un punto. Apaga **Buscar actualizaciones** en el panel y TICS no se conecta
+nunca.
 
 Con la ficha «Logitech» encendida, pide también el permiso de **Bluetooth**, para oír los botones
 que se queda Logi Options+. Solo escucha cuándo los pulsas y los sueltas: no cambia nada del ratón.

@@ -71,6 +71,17 @@ final class AppState {
         didSet { defaults.set(menuBarIcon.rawValue, forKey: Keys.menuBarIcon) }
     }
 
+    /// Si mira en GitHub, una vez al día, si hay versión nueva. Al apagarlo se olvida la que viera
+    var checksForUpdates: Bool {
+        didSet {
+            defaults.set(checksForUpdates, forKey: Keys.checksForUpdates)
+            updateChecks()
+        }
+    }
+
+    /// La versión de GitHub, si es más nueva que la instalada: el panel la avisa y el icono lleva un punto
+    private(set) var newVersion: AppVersion?
+
     /// Si suena algo: el teclado, el ratón, la rueda o los botones desviados
     var isSounding: Bool { listening.isSounding }
 
@@ -108,6 +119,7 @@ final class AppState {
     @ObservationIgnored private let keyboard = KeyboardMonitor()
     @ObservationIgnored private let mouse = MouseMonitor()
     @ObservationIgnored private let logitech = LogitechMonitor()
+    @ObservationIgnored private let updates = UpdateChecker()
     @ObservationIgnored private let defaults = UserDefaults.standard
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private let keyboardSettingsWindow = KeyboardSettingsWindow()
@@ -129,6 +141,7 @@ final class AppState {
         static let volume = "volume"
         static let pack = "selectedPackID"
         static let menuBarIcon = "menuBarIcon"
+        static let checksForUpdates = "checksForUpdates"
         /// La receta de «Mis tics» y su id de pack, de cuando había configurador
         static let myTicsRecipe = "myTicsRecipe"
         static let myTicsPackID = "my-tics"
@@ -145,7 +158,7 @@ final class AppState {
         )
         defaults.register(defaults: [
             Keys.enabled: true, Keys.mouseEnabled: true, Keys.scrollEnabled: true, Keys.volume: 0.65,
-            Keys.pack: Self.defaultPackID,
+            Keys.pack: Self.defaultPackID, Keys.checksForUpdates: true,
         ])
         isEnabled = defaults.bool(forKey: Keys.enabled)
         isMouseEnabled = defaults.bool(forKey: Keys.mouseEnabled)
@@ -155,6 +168,7 @@ final class AppState {
         selectedPackID = Self.forgetMyTics(defaults, selectedPackID: defaults.string(forKey: Keys.pack))
         menuBarIcon = defaults.string(forKey: Keys.menuBarIcon).flatMap(MenuBarIcon.init) ?? .waveform
         launchAtLogin = SMAppService.mainApp.status == .enabled
+        checksForUpdates = defaults.bool(forKey: Keys.checksForUpdates)
 
         self.packs = packs
         audio.volume = Float(volume)
@@ -166,6 +180,8 @@ final class AppState {
         logitech.onButton = { [weak self] isDown in self?.playDiverted(isDown: isDown) }
         updateMonitors()
         askPermissionAtLaunch()
+        updates.onResult = { [weak self] in self?.newVersion = $0 }
+        updateChecks()
 
         // Cada 2 s: mira si ya hay permiso, si los taps siguen vivos y si hay un ratón Logitech
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
@@ -386,5 +402,21 @@ final class AppState {
             log.error("Abrir al iniciar sesión: \(error.localizedDescription, privacy: .public)")
         }
         launchAtLogin = SMAppService.mainApp.status == .enabled
+    }
+
+    //- Versión nueva -
+
+    private func updateChecks() {
+        if checksForUpdates, let current = AppVersion.current {
+            updates.start(current: current)
+        } else {
+            updates.stop()
+            newVersion = nil
+        }
+    }
+
+    /// Baja el .dmg de la última versión con el navegador
+    func downloadUpdate() {
+        NSWorkspace.shared.open(UpdateChecker.downloadURL)
     }
 }

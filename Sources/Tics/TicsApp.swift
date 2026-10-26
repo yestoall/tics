@@ -11,7 +11,7 @@ struct TicsApp: App {
         MenuBarExtra {
             MenuView(state: state)
         } label: {
-            Image(nsImage: state.menuBarIcon.image(isSounding: state.isSounding))
+            Image(nsImage: state.menuBarIcon.image(isSounding: state.isSounding, hasUpdate: state.newVersion != nil))
         }
         .menuBarExtraStyle(.window)
     }

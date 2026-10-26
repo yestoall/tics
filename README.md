@@ -39,8 +39,12 @@ choose.
 ## Privacy
 
 TICS needs **Input Monitoring** permission to know which key you press and pick its sound. It
-only listens: it never saves what you type or where you click, and it never connects to the
-internet.
+only listens: it never saves what you type or where you click.
+
+TICS only connects to the internet when it opens and once a day after that, to ask GitHub for the
+number of the latest version. It sends nothing else. If there's a newer one, the panel tells you
+and the menu bar icon gets a dot. Turn off **Check for Updates** in the panel and TICS never
+connects at all.
 
 With the Logitech tile on, TICS also asks for **Bluetooth** permission, to hear the buttons
 Logi Options+ takes over. It only listens for when you press and release them: it doesn't change

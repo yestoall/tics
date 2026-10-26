@@ -226,6 +226,22 @@
         }
       }
     },
+    "Buscar actualizaciones": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for Updates"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar actualizaciones"
+          }
+        }
+      }
+    },
     "Callado": {
       "localizations": {
         "en": {
@@ -350,6 +366,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Del pack"
+          }
+        }
+      }
+    },
+    "Descargar": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargar"
           }
         }
       }
@@ -1086,6 +1118,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Volumen"
+          }
+        }
+      }
+    },
+    "Ya está TICS %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TICS %@ is available"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya está TICS %@"
           }
         }
       }

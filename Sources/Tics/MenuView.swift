@@ -2,7 +2,8 @@
 // El panel que se abre desde el icono de la barra de menús, por módulos como el Centro de control:
 // el icono, el nombre y la versión (que abren «Acerca de TICS»), una fila con las fichas del
 // teclado, el ratón, la rueda y, con un ratón Logitech conectado, sus botones desviados, el pack en
-// un desplegable con el volumen debajo, abrir al iniciar sesión, una fila de iconos y la firma.
+// un desplegable con el volumen debajo, abrir al iniciar sesión y buscar actualizaciones (con la
+// versión nueva debajo, si la hay), una fila de iconos y la firma.
 // Se eligió entre cuatro versiones; las otras están en la rama prototype/panel.
 // Al abrirlo, los bloques entran uno tras otro; las fichas y los botones se hunden al pulsarlos.
 
@@ -49,15 +50,28 @@ struct MenuView: View {
 
             Module {
                 // El switch a la derecha, como en Ajustes: un Toggle de macOS lo pega al texto
-                HStack {
-                    Text("Abrir al iniciar sesión").font(.title3)
-                    Spacer()
-                    Toggle("Abrir al iniciar sesión", isOn: Binding(
-                        get: { state.launchAtLogin },
-                        set: { state.setLaunchAtLogin($0) }
-                    ))
-                    .labelsHidden()
-                    .toggleStyle(.switch)
+                VStack(spacing: 12) {
+                    HStack {
+                        Text("Abrir al iniciar sesión").font(.title3)
+                        Spacer()
+                        Toggle("Abrir al iniciar sesión", isOn: Binding(
+                            get: { state.launchAtLogin },
+                            set: { state.setLaunchAtLogin($0) }
+                        ))
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                    }
+                    HStack {
+                        Text("Buscar actualizaciones").font(.title3)
+                        Spacer()
+                        Toggle("Buscar actualizaciones", isOn: $state.checksForUpdates)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                    }
+                    // Debajo de lo que la enciende: al apagarlo, se va con él
+                    if let version = state.newVersion {
+                        UpdateRow(version: version) { state.downloadUpdate() }
+                    }
                 }
             }
             .entrance(isShown, order: 4)
@@ -498,6 +512,27 @@ private struct BluetoothNotice: View {
             Button("Abrir Ajustes") { state.openBluetoothSettings() }
         }
         .notice()
+    }
+}
+
+//- Aviso de versión nueva -
+
+/// Cuando GitHub tiene una versión más nueva que la instalada, en el bloque de buscar
+/// actualizaciones. Lo que hay de nuevo lo cuenta la release; aquí solo el número y la descarga
+private struct UpdateRow: View {
+    let version: AppVersion
+    let download: () -> Void
+
+    var body: some View {
+        HStack {
+            Text("Ya está TICS \(version.description)").font(.title3)
+            Spacer()
+            Button(action: download) {
+                Text("Descargar").textCase(.uppercase)
+            }
+            // Destacado, en el color de realce como las fichas encendidas y el volumen
+            .buttonStyle(.borderedProminent)
+        }
     }
 }
 
