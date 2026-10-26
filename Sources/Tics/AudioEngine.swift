@@ -46,11 +46,21 @@ final class AudioEngine {
         configurationObserver = NotificationCenter.default.addObserver(
             forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated {
-                self?.log.info("Cambió la salida de audio; rearranco el motor")
-                self?.startIfNeeded()
-            }
+            MainActor.assumeIsolated { self?.outputDidChange() }
         }
+    }
+
+    /// El mezclador sigue conectado a la salida con el formato de la anterior. Si la nueva va a
+    /// otra frecuencia (unos altavoces USB a 44,1 kHz, los del Mac a 48 kHz), el motor arranca
+    /// pero no suena: hay que conectarlo otra vez con el formato de la nueva
+    private func outputDidChange() {
+        let hardware = engine.outputNode.outputFormat(forBus: 0)
+        log.info("Cambió la salida de audio (\(hardware.sampleRate, privacy: .public) Hz); rearranco el motor")
+        if hardware.sampleRate > 0, hardware.channelCount > 0,
+           let format = AVAudioFormat(standardFormatWithSampleRate: hardware.sampleRate, channels: hardware.channelCount) {
+            engine.connect(engine.mainMixerNode, to: engine.outputNode, format: format)
+        }
+        startIfNeeded()
     }
 
     func load(_ soundPack: SoundPack) throws {
