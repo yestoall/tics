@@ -25,9 +25,38 @@ final class AudioEngine {
     private var configurationObserver: (any NSObjectProtocol)?
     private let log = Logger(subsystem: "com.yestoall.tics", category: "AudioEngine")
 
-    var volume: Float {
-        get { engine.mainMixerNode.outputVolume }
-        set { engine.mainMixerNode.outputVolume = newValue }
+    /// El volumen elegido. Lo que suena es eso por `duckLevel`
+    var volume: Float = 1 {
+        didSet { applyVolume() }
+    }
+
+    //- Más bajo con otro audio -
+
+    /// La parte del volumen que queda mientras suena otra app
+    static let duckedLevel: Float = 0.4
+    /// 1 normalmente; baja hasta `duckedLevel` con otro audio y vuelve, con un fundido
+    private var duckLevel: Float = 1
+    private var duckFade: Task<Void, Never>?
+
+    /// Baja o vuelve a su volumen en unos 300 ms: de golpe se notaría el salto
+    func duck(_ isDucked: Bool) {
+        let target = isDucked ? Self.duckedLevel : 1
+        guard target != duckLevel else { return }
+        duckFade?.cancel()
+        let start = duckLevel
+        duckFade = Task { [weak self] in
+            let steps = 20
+            for step in 1...steps {
+                try? await Task.sleep(for: .milliseconds(15))
+                guard !Task.isCancelled, let self else { return }
+                duckLevel = start + (target - start) * Float(step) / Float(steps)
+                applyVolume()
+            }
+        }
+    }
+
+    private func applyVolume() {
+        engine.mainMixerNode.outputVolume = volume * duckLevel
     }
 
     init() {

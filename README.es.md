@@ -33,6 +33,9 @@ que elijas.
 - **Ratones Logitech**: si Logi Options+ se queda algún botón (atrás, adelante, gestos…), enciende
   la ficha «Logitech» y suena también. Con el ratón conectado por Bluetooth. Con un MX Master 4,
   además, cada botón puede vibrar al pulsarlo, con el efecto que elijas en los ajustes del ratón.
+- **Más bajo con otro audio**: mientras suena música, un vídeo o una llamada, TICS baja al 40 % de
+  tu volumen y vuelve unos segundos después de que pare. También puedes bajarlo o callarlo a mano
+  desde la fila del volumen, sin cerrarlo.
 - **En español y en inglés**: TICS sale en el idioma de tu Mac.
 
 ## Privacidad
@@ -40,10 +43,13 @@ que elijas.
 TICS necesita el permiso **Monitorización de los dispositivos de entrada** para saber qué tecla
 pulsas y elegir su sonido. Solo escucha: no guarda nada de lo que escribes ni dónde haces clic.
 
+Para saber si suena otro audio, TICS mira qué apps están usando los altavoces, como lo cuenta
+macOS. No oye lo que suena ni pide ningún permiso.
+
 TICS solo se conecta a internet al abrirse y luego una vez al día, para preguntar a GitHub el
 número de la última versión, y no manda nada más. Si hay una más nueva, te lo dice el panel y el
-icono de la barra lleva un punto. Apaga **Buscar actualizaciones** en el panel y TICS no se conecta
-nunca.
+icono de la barra lleva un punto rojo. Apaga **Buscar actualizaciones** en el panel y TICS no se
+conecta nunca.
 
 Con la ficha «Logitech» encendida, pide también el permiso de **Bluetooth**, para oír los botones
 que se queda Logi Options+. Solo escucha cuándo los pulsas y los sueltas: no cambia nada del ratón.

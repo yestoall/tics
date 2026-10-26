@@ -82,6 +82,36 @@ final class AppState {
     /// La versión de GitHub, si es más nueva que la instalada: el panel la avisa y el icono lleva un punto
     private(set) var newVersion: AppVersion?
 
+    /// Si TICS baja mientras otra app tiene abierta la salida de audio (música, un vídeo…)
+    var lowersWithOtherAudio: Bool {
+        didSet {
+            defaults.set(lowersWithOtherAudio, forKey: Keys.lowersWithOtherAudio)
+            updateOtherAudio()
+        }
+    }
+
+    /// Las apps por las que TICS suena más bajo ahora: el panel las nombra, para ver de dónde sale
+    /// una falsa alarma (una app que deja la salida abierta en silencio)
+    private(set) var loweredBy: [String] = []
+
+    /// Más bajo a mano, con el botón del panel: lo mismo que con otro audio, hasta volver a pulsarlo.
+    /// No se guarda: al reabrir TICS, vuelve a su volumen
+    var isManuallyLowered = false {
+        didSet { updateDuck() }
+    }
+
+    /// Si suena más bajo ahora, a mano o por otro audio
+    var isLowered: Bool { isManuallyLowered || !loweredBy.isEmpty }
+
+    /// Lo que suena de verdad: el volumen elegido, o su parte si está más bajo. La barra del panel
+    /// pinta su relleno hasta aquí
+    var soundingVolume: Double { isLowered ? volume * Double(AudioEngine.duckedLevel) : volume }
+
+    /// Callada entera con el botón del panel, sin cerrar la app ni apagar las fichas. No se guarda
+    var isMuted = false {
+        didSet { updateMonitors() }
+    }
+
     /// Si suena algo: el teclado, el ratón, la rueda o los botones desviados
     var isSounding: Bool { listening.isSounding }
 
@@ -94,7 +124,8 @@ final class AppState {
     /// Qué se escucha y qué suena ahora mismo
     private var listening: ListeningPlan {
         ListeningPlan(
-            toggles: .init(
+            // Callada, como con todas las fichas apagadas, pero sin tocarlas: al volver, siguen igual
+            toggles: isMuted ? .init() : .init(
                 keyboard: isEnabled, mouse: isMouseEnabled, scroll: isScrollEnabled, logitech: isLogitechEnabled
             ),
             openSettings: openSettings,
@@ -120,6 +151,7 @@ final class AppState {
     @ObservationIgnored private let mouse = MouseMonitor()
     @ObservationIgnored private let logitech = LogitechMonitor()
     @ObservationIgnored private let updates = UpdateChecker()
+    @ObservationIgnored private let otherAudio = OtherAudioMonitor()
     @ObservationIgnored private let defaults = UserDefaults.standard
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private let keyboardSettingsWindow = KeyboardSettingsWindow()
@@ -142,6 +174,7 @@ final class AppState {
         static let pack = "selectedPackID"
         static let menuBarIcon = "menuBarIcon"
         static let checksForUpdates = "checksForUpdates"
+        static let lowersWithOtherAudio = "lowersWithOtherAudio"
         /// La receta de «Mis tics» y su id de pack, de cuando había configurador
         static let myTicsRecipe = "myTicsRecipe"
         static let myTicsPackID = "my-tics"
@@ -158,7 +191,7 @@ final class AppState {
         )
         defaults.register(defaults: [
             Keys.enabled: true, Keys.mouseEnabled: true, Keys.scrollEnabled: true, Keys.volume: 0.65,
-            Keys.pack: Self.defaultPackID, Keys.checksForUpdates: true,
+            Keys.pack: Self.defaultPackID, Keys.checksForUpdates: true, Keys.lowersWithOtherAudio: true,
         ])
         isEnabled = defaults.bool(forKey: Keys.enabled)
         isMouseEnabled = defaults.bool(forKey: Keys.mouseEnabled)
@@ -169,6 +202,7 @@ final class AppState {
         menuBarIcon = defaults.string(forKey: Keys.menuBarIcon).flatMap(MenuBarIcon.init) ?? .waveform
         launchAtLogin = SMAppService.mainApp.status == .enabled
         checksForUpdates = defaults.bool(forKey: Keys.checksForUpdates)
+        lowersWithOtherAudio = defaults.bool(forKey: Keys.lowersWithOtherAudio)
 
         self.packs = packs
         audio.volume = Float(volume)
@@ -182,6 +216,8 @@ final class AppState {
         askPermissionAtLaunch()
         updates.onResult = { [weak self] in self?.newVersion = $0 }
         updateChecks()
+        otherAudio.onChange = { [weak self] in self?.otherAudioDidChange($0) }
+        updateOtherAudio()
 
         // Cada 2 s: mira si ya hay permiso, si los taps siguen vivos y si hay un ratón Logitech
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { [weak self] _ in
@@ -418,5 +454,31 @@ final class AppState {
     /// Baja el .dmg de la última versión con el navegador
     func downloadUpdate() {
         NSWorkspace.shared.open(UpdateChecker.downloadURL)
+    }
+
+    //- Más bajo con otro audio -
+
+    /// Si este Mac puede saber qué apps tienen la salida abierta (macOS 14.2): si no, no sale el interruptor
+    var canLowerWithOtherAudio: Bool { OtherAudioMonitor.isAvailable }
+
+    private func updateOtherAudio() {
+        if lowersWithOtherAudio {
+            otherAudio.start()
+        } else {
+            otherAudio.stop()
+            otherAudioDidChange([])
+        }
+    }
+
+    /// Baja en cuanto otra app abre la salida y vuelve en cuanto la cierran todas. Sin espera
+    /// propia: Dia, por ejemplo, ya la deja abierta unos 20 s tras pausar, y eso cubre los huecos
+    /// entre canción y canción
+    private func otherAudioDidChange(_ apps: [String]) {
+        loweredBy = apps
+        updateDuck()
+    }
+
+    private func updateDuck() {
+        audio.duck(isLowered)
     }
 }

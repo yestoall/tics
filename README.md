@@ -34,6 +34,9 @@ choose.
   Logitech tile and it makes a sound too. Works with the mouse connected over Bluetooth. With an
   MX Master 4, each button can also vibrate when you press it, with the effect you pick in Mouse
   Settings.
+- **Quieter with other audio**: while music, a video or a call is playing, TICS drops to 40% of
+  your volume, and comes back a few seconds after it stops. You can also make it quieter or silence
+  it from the volume row, without quitting it.
 - **English and Spanish**: TICS follows your Mac's language.
 
 ## Privacy
@@ -41,9 +44,12 @@ choose.
 TICS needs **Input Monitoring** permission to know which key you press and pick its sound. It
 only listens: it never saves what you type or where you click.
 
+To know when other audio is playing, TICS checks which apps are using the speakers, as macOS
+reports it. It doesn't listen to what they play and doesn't ask for any permission.
+
 TICS only connects to the internet when it opens and once a day after that, to ask GitHub for the
 number of the latest version. It sends nothing else. If there's a newer one, the panel tells you
-and the menu bar icon gets a dot. Turn off **Check for Updates** in the panel and TICS never
+and the menu bar icon gets a red dot. Turn off **Check for Updates** in the panel and TICS never
 connects at all.
 
 With the Logitech tile on, TICS also asks for **Bluetooth** permission, to hear the buttons

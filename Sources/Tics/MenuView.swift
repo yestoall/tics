@@ -19,21 +19,38 @@ struct MenuView: View {
             Header()
                 .entrance(isShown, order: 0)
 
+            // Callada, tenues y quietas: siguen como estaban, pero ahora no suenan
             SoundToggles(state: state)
+                .opacity(state.isMuted ? 0.4 : 1)
+                .disabled(state.isMuted)
                 .entrance(isShown, order: 1)
 
             Module {
                 VStack(spacing: 12) {
                     PackMenu(state: state)
-                    HStack(spacing: 10) {
-                        Image(systemName: "speaker.fill").foregroundStyle(.secondary)
-                        CapsuleSlider(value: $state.volume)
-                        // Las ondas se llenan con el volumen
-                        Image(systemName: "speaker.wave.3.fill", variableValue: state.volume)
+                    // Callar y bajar, delante de la barra. Se apagan volviendo a pulsarlos, y no se
+                    // desactivan con la barra: si no, callada ya no se podría quitar
+                    HStack(spacing: 8) {
+                        VolumeButton(icon: "speaker.slash.fill", label: "Callar TICS", isOn: state.isMuted) {
+                            state.isMuted.toggle()
+                        }
+                        VolumeButton(icon: "speaker.minus.fill", label: "Más bajo", isOn: state.isManuallyLowered) {
+                            state.isManuallyLowered.toggle()
+                        }
+                        // El tirador es el volumen elegido; el relleno y las ondas, lo que suena,
+                        // que más bajo es menos. Cambian con el mismo fundido que el sonido
+                        CapsuleSlider(value: $state.volume, sounding: state.soundingVolume)
+                            .padding(.leading, 2)
+                            .disabled(!state.isSounding)
+                        Image(systemName: "speaker.wave.3.fill", variableValue: state.soundingVolume)
                             .foregroundStyle(.secondary)
+                            .opacity(state.isSounding ? 1 : 0.4)
                     }
                     .font(.title3)
-                    .disabled(!state.isSounding)
+                    .animation(.easeInOut(duration: 0.3), value: state.isLowered)
+                    if state.canLowerWithOtherAudio {
+                        LowerWithOtherAudio(state: state)
+                    }
                 }
             }
             .entrance(isShown, order: 2)
@@ -433,6 +450,33 @@ private struct ModuleButton: View {
     }
 }
 
+/// Los botones de callar y bajar, junto a la barra del volumen: un círculo como el de las fichas,
+/// en el color de realce mientras están encendidos
+private struct VolumeButton: View {
+    let icon: String
+    let label: LocalizedStringKey
+    let isOn: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            withAnimation(.snappy) { action() }
+        } label: {
+            Image(systemName: icon)
+                .font(.callout)
+                .symbolEffect(.bounce, value: isOn)
+                .frame(width: 32, height: 32)
+                .foregroundStyle(isOn ? .white : .primary)
+                .background(isOn ? Color.accentColor : Color.primary.opacity(0.1), in: Circle())
+                .contentShape(Circle())
+        }
+        .buttonStyle(PressStyle())
+        .help(Text(label))
+        .accessibilityLabel(Text(label))
+        .accessibilityAddTraits(isOn ? .isSelected : [])
+    }
+}
+
 //- Pack -
 
 /// El pack que suena y, al pulsarlo, la lista para cambiarlo
@@ -512,6 +556,34 @@ private struct BluetoothNotice: View {
             Button("Abrir Ajustes") { state.openBluetoothSettings() }
         }
         .notice()
+    }
+}
+
+//- Más bajo con otro audio -
+
+/// El interruptor, debajo del volumen, y mientras está más bajo, por qué apps: así se ve de dónde
+/// sale una falsa alarma
+private struct LowerWithOtherAudio: View {
+    @Bindable var state: AppState
+
+    /// «Dia», «Dia y Música»…, en el idioma de la app
+    private var apps: String { state.loweredBy.formatted(.list(type: .and)) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text("Más bajo con otro audio").font(.title3)
+                Spacer()
+                Toggle("Más bajo con otro audio", isOn: $state.lowersWithOtherAudio)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+            }
+            if !state.loweredBy.isEmpty {
+                Text("Ahora más bajo por \(apps)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
     }
 }
 

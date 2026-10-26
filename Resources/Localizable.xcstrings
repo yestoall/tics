@@ -114,6 +114,22 @@
         }
       }
     },
+    "Ahora más bajo por %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quieter now because of %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ahora más bajo por %@"
+          }
+        }
+      }
+    },
     "Ajustes del ratón": {
       "localizations": {
         "en": {
@@ -254,6 +270,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Callado"
+          }
+        }
+      }
+    },
+    "Callar TICS": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silence TICS"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Callar TICS"
           }
         }
       }
@@ -510,6 +542,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Logitech"
+          }
+        }
+      }
+    },
+    "Más bajo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quieter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más bajo"
+          }
+        }
+      }
+    },
+    "Más bajo con otro audio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quieter with Other Audio"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más bajo con otro audio"
           }
         }
       }

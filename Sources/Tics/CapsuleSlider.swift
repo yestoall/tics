@@ -10,6 +10,9 @@ import SwiftUI
 struct CapsuleSlider: View {
     @Binding var value: Double
     var range: ClosedRange<Double> = 0...1
+    /// Hasta dónde suena de verdad, si es menos que el valor (TICS más bajo): el relleno llega ahí
+    /// y el tramo hasta el tirador sale tenue. El tirador sigue en el valor elegido
+    var sounding: Double? = nil
     var released: () -> Void = {}
 
     static let height: CGFloat = 22
@@ -26,11 +29,16 @@ struct CapsuleSlider: View {
         GeometryReader { geometry in
             let usable = max(geometry.size.width - Self.knobWidth, 1)
             let knobX = usable * (value - range.lowerBound) / span
+            let soundingX = usable * (min(sounding ?? value, value) - range.lowerBound) / span
+            let fill = isEnabled ? Color.accentColor : Color.primary.opacity(0.25)
             ZStack(alignment: .leading) {
                 Capsule().fill(Color.primary.opacity(0.12))
                 Capsule()
-                    .fill(isEnabled ? Color.accentColor : Color.primary.opacity(0.25))
+                    .fill(fill.opacity(0.35))
                     .frame(width: knobX + Self.knobWidth)
+                Capsule()
+                    .fill(fill)
+                    .frame(width: soundingX + Self.knobWidth)
                 Knob()
                     .frame(width: Self.knobWidth - 4, height: Self.height - 4)
                     .offset(x: knobX + 2)
