@@ -50,16 +50,13 @@ final class AudioEngine {
         }
     }
 
-    /// El mezclador sigue conectado a la salida con el formato de la anterior. Si la nueva va a
-    /// otra frecuencia (unos altavoces USB a 44,1 kHz, los del Mac a 48 kHz), el motor arranca
-    /// pero no suena: hay que conectarlo otra vez con el formato de la nueva
+    /// Al pararse el motor, los reproductores que ya habían sonado se quedan diciendo que suenan
+    /// (`isPlaying`), así que `schedule` no les vuelve a dar `play()` y todo queda mudo hasta
+    /// reiniciar la app. Se paran a mano para que el siguiente sonido los arranque
     private func outputDidChange() {
-        let hardware = engine.outputNode.outputFormat(forBus: 0)
-        log.info("Cambió la salida de audio (\(hardware.sampleRate, privacy: .public) Hz); rearranco el motor")
-        if hardware.sampleRate > 0, hardware.channelCount > 0,
-           let format = AVAudioFormat(standardFormatWithSampleRate: hardware.sampleRate, channels: hardware.channelCount) {
-            engine.connect(engine.mainMixerNode, to: engine.outputNode, format: format)
-        }
+        let sampleRate = engine.outputNode.outputFormat(forBus: 0).sampleRate
+        log.info("Cambió la salida de audio (\(sampleRate, privacy: .public) Hz); rearranco el motor")
+        for player in players { player.stop() }
         startIfNeeded()
     }
 
