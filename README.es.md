@@ -4,7 +4,7 @@
 
 Tu Mac suena como un teclado mecánico al teclear, y como un ratón al hacer clic.
 
-Versión 0.1.1
+Versión 0.2.0
 
 [![Mira TICS en YouTube, con sonido](https://img.youtube.com/vi/_GZCnr1pWfg/maxresdefault.jpg)](https://youtu.be/_GZCnr1pWfg)
 
@@ -15,6 +15,15 @@ Versión 0.1.1
 **[Descarga TICS](https://github.com/yestoall/tics/releases/latest/download/TICS.dmg)**, gratis.
 Abre el .dmg y arrastra TICS a Aplicaciones. Pide macOS 14 o posterior y va en Mac con Apple
 silicon e Intel. La primera vez que la abres, macOS te pide permiso para escuchar el teclado.
+
+## Por qué
+
+TICS la hice para mí. Hay algo en el clac de un teclado mecánico que sienta bien: cada tecla te
+contesta. Usaba [JoyTap](https://setapp.com/apps/joytap), una app de pago que hace algo parecido,
+pero echaba en falta cosas, como que también sonara el ratón. Así que hice la mía.
+
+Si se te ocurre cómo mejorarla, [cuéntamelo en GitHub](https://github.com/yestoall/tics/issues).
+Lo mismo me animo a hacerlo yo, o lo mismo prefieres hacerlo tú.
 
 ## Qué hace
 

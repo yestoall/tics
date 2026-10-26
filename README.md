@@ -4,7 +4,7 @@
 
 Make your Mac sound like a mechanical keyboard when you type, and like a mouse when you click.
 
-Version 0.1.1
+Version 0.2.0
 
 [![Watch TICS on YouTube, with sound](https://img.youtube.com/vi/_GZCnr1pWfg/maxresdefault.jpg)](https://youtu.be/_GZCnr1pWfg)
 
@@ -16,6 +16,16 @@ Version 0.1.1
 Open the .dmg and drag TICS to Applications. It needs macOS 14 or later and works on Apple
 silicon and Intel Macs. The first time you open it, macOS asks for permission to listen to the
 keyboard.
+
+## Why
+
+I made TICS for myself. There's something about the clack of a mechanical keyboard that feels
+good: every key answers back. I'd been using [JoyTap](https://setapp.com/apps/joytap), a paid app
+that does something similar, but I kept missing things, like hearing the mouse too. So I built my
+own.
+
+If you think of a way to make it better, [open an issue](https://github.com/yestoall/tics/issues).
+Maybe I'll build it, or maybe you'd rather build it yourself.
 
 ## What it does
 
