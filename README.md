@@ -4,7 +4,7 @@
 
 Make your Mac sound like a mechanical keyboard when you type, and like a mouse when you click.
 
-Version 0.2.0
+Version 0.2.1
 
 [![Watch TICS on YouTube, with sound](https://img.youtube.com/vi/_GZCnr1pWfg/maxresdefault.jpg)](https://youtu.be/_GZCnr1pWfg)
 
