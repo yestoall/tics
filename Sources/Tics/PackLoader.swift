@@ -16,6 +16,11 @@ struct LoadedPack {
     func sounds(for keyCode: UInt16, isDown: Bool) -> [AVAudioPCMBuffer] {
         isDown ? down[keyCode] ?? fallbackDown : up[keyCode] ?? fallbackUp
     }
+
+    /// Todos sus sonidos, también los de reserva. Uno que esté en varias teclas sale varias veces
+    var allBuffers: [AVAudioPCMBuffer] {
+        down.values.flatMap { $0 } + up.values.flatMap { $0 } + fallbackDown + fallbackUp
+    }
 }
 
 enum PackLoaderError: Error {

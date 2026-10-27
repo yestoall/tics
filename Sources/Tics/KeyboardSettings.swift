@@ -84,6 +84,8 @@ struct KeyboardSettings: Codable, Equatable, Sendable {
     private(set) var changedGroups: [KeyGroup: ChangedGroup] = [:]
     /// En el orden en que se cambiaron; una tecla sale una sola vez
     private(set) var changedKeys: [ChangedKey] = []
+    /// Cada pulsación un poco más grave o más aguda, al azar (PitchVariants). Encendido de serie
+    var variesPitch = true
 
     /// Cómo suena un grupo de teclas
     subscript(group: KeyGroup) -> ChangedGroup {
@@ -128,11 +130,13 @@ struct KeyboardSettings: Codable, Equatable, Sendable {
 }
 
 extension KeyboardSettings {
-    /// Lo guardado antes de los grupos no los trae
+    /// Lo guardado antes de los grupos no los trae, ni lo de antes de variar el tono, que se lee
+    /// encendido, como sale de serie
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         changedGroups = try container.decodeIfPresent([KeyGroup: ChangedGroup].self, forKey: .changedGroups) ?? [:]
         changedKeys = try container.decodeIfPresent([ChangedKey].self, forKey: .changedKeys) ?? []
+        variesPitch = try container.decodeIfPresent(Bool.self, forKey: .variesPitch) ?? true
         changedGroups = changedGroups.filter { !$0.value.isDefault }
     }
 }

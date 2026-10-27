@@ -156,6 +156,12 @@ final class KeyboardSettingsEditor {
         playSample(KeyChord(group.sampleKey))
     }
 
+    /// Variar el tono de cada pulsación, o no
+    func setVariesPitch(_ isOn: Bool) {
+        settings.variesPitch = isOn
+        save()
+    }
+
     /// Todos los grupos y todas las teclas, otra vez como en el pack activo
     func reset() {
         stopCapturing()

@@ -35,6 +35,8 @@ choose.
 - **11 keyboards**: Cherry MX Blue, Brown and Red, Holy Panda, Cream, MX Blue, MX Brown, Oreo,
   Topre Purple, Turquoise, and a synthetic one generated in code.
 - **Press and release** sound different, and holding a key down sounds softer on each repeat.
+- **Every keystroke a little different**: the pitch shifts slightly from one press to the next,
+  like a real keyboard. Turn it off with **Vary Pitch**, in **Set Up Keyboard…**.
 - **Clicks, drags and scrolling**: your mouse makes sounds too, at the same volume as your
   keyboard. Dragging sounds like a ratchet, faster the quicker you move, and the scroll wheel
   clicks with every notch.

@@ -32,6 +32,9 @@ struct KeyboardSettingsView: View {
             }
             .padding(.horizontal, 24)
 
+            VariesPitchRow(editor: editor)
+                .padding(.horizontal, 24)
+
             rows
 
             HStack {
@@ -97,6 +100,31 @@ struct KeyboardSettingsView: View {
                 withAnimation(.snappy) { proxy.scrollTo(added, anchor: .bottom) }
             }
         }
+    }
+}
+
+/// Variar el tono de cada pulsación: vale para todas las teclas, así que va encima de los grupos
+private struct VariesPitchRow: View {
+    @Bindable var editor: KeyboardSettingsEditor
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Variar el tono").font(.title3.bold())
+                Text("Cada tecla suena un poco distinta cada vez, como en un teclado de verdad.")
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer()
+            Toggle("Variar el tono", isOn: Binding(
+                get: { editor.settings.variesPitch },
+                set: { editor.setVariesPitch($0) }
+            ))
+            .labelsHidden()
+            .toggleStyle(.switch)
+        }
+        .sectionPadding()
+        .background(Color.primary.opacity(0.06), in: .rect(cornerRadius: 12))
     }
 }
 

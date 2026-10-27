@@ -104,6 +104,12 @@ struct KeyboardSounds {
         sounds(for: KeyChord(keyCode), isDown: isDown)
     }
 
+    /// Todo lo que puede sonar: el pack, los grupos y las teclas cambiadas
+    var allBuffers: [AVAudioPCMBuffer] {
+        pack.allBuffers + groups.values.flatMap(\.sounds.allBuffers)
+            + keys.values.flatMap { $0.sounds.down + $0.sounds.up }
+    }
+
     //- Capas -
 
     /// Lo que suena en una tecla o un atajo sin contar si está cambiado: en un atajo, la tecla sola;

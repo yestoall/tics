@@ -226,6 +226,22 @@
         }
       }
     },
+    "Cada tecla suena un poco distinta cada vez, como en un teclado de verdad.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each key sounds a little different every time, like a real keyboard."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada tecla suena un poco distinta cada vez, como en un teclado de verdad."
+          }
+        }
+      }
+    },
     "Callado": {
       "localizations": {
         "en": {
@@ -1134,6 +1150,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Toque"
+          }
+        }
+      }
+    },
+    "Variar el tono": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vary Pitch"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Variar el tono"
           }
         }
       }

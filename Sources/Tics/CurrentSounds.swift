@@ -14,6 +14,8 @@ struct CurrentSounds {
     /// Lo que suena cada tecla: el pack con los ajustes del teclado encima
     private var keys = KeyboardSounds(pack: LoadedPack(), settings: KeyboardSettings(), sources: [:])
     private var keyboardSettings = KeyboardSettings()
+    /// La copia de otro tono de cada sonido, con «Variar el tono» encendido
+    private var variants = PitchVariants()
     /// Los packs de los que salen los grupos y las teclas cambiadas, cargados: solo los que se usan,
     /// y de cada uno solo lo que se usa
     private var sources: [String: (use: SourceUse, pack: LoadedPack)] = [:]
@@ -36,6 +38,7 @@ struct CurrentSounds {
     mutating func use(_ soundPack: SoundPack) throws {
         pack = try load(soundPack)
         keys.changePack(to: pack, settings: keyboardSettings, sources: sources.mapValues(\.pack))
+        matchVariants()
         matchMouse()
     }
 
@@ -60,13 +63,21 @@ struct CurrentSounds {
         }
         sources = next
         keys = keys.updated(settings: settings, sources: sources.mapValues(\.pack))
+        matchVariants()
+    }
+
+    /// Las copias de lo que suena ahora, o ninguna si «Variar el tono» está apagado. Las de los
+    /// sonidos que siguen sonando no se recalculan
+    private mutating func matchVariants() {
+        variants = keyboardSettings.variesPitch ? variants.updated(for: keys.allBuffers) : PitchVariants()
     }
 
     //- Teclas -
 
-    /// Lo que suena con una pulsación de verdad (ver KeyboardSounds)
+    /// Lo que suena con una pulsación de verdad (ver KeyboardSounds), con sus copias de otro tono
     mutating func sound(for event: KeyEvent) -> KeyboardSounds.Sound? {
-        keys.sound(for: event)
+        guard let sound = keys.sound(for: event) else { return nil }
+        return KeyboardSounds.Sound(variants: variants.expanded(sound.variants), volume: sound.volume)
     }
 
     /// Una tecla o un atajo, sin pasar por lo que recuerda de las teclas que tienes pulsadas

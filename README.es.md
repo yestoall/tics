@@ -34,6 +34,8 @@ que elijas.
   Topre Purple, Turquoise y uno sintético, calculado con código.
 - **Pulsar y soltar** suenan distinto, y mantener una tecla pulsada suena más flojo en cada
   repetición.
+- **Cada pulsación, un poco distinta**: el tono cambia un poco de una vez a otra, como en un
+  teclado de verdad. Se apaga con **Variar el tono**, en **Configurar teclado…**.
 - **Clics, arrastres y rueda**: el ratón suena también, a la misma altura que el teclado que
   tienes. Arrastrar suena como un trinquete, más seguido cuanto más deprisa, y la rueda, a cada
   muesca.
