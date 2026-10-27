@@ -152,6 +152,8 @@ final class AppState {
     @ObservationIgnored private let logitech = LogitechMonitor()
     @ObservationIgnored private let updates = UpdateChecker()
     @ObservationIgnored private let otherAudio = OtherAudioMonitor()
+    /// La espera antes de bajar por otro audio (ver `otherAudioDidChange`)
+    @ObservationIgnored private var lowerWait: Task<Void, Never>?
     @ObservationIgnored private let defaults = UserDefaults.standard
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private let keyboardSettingsWindow = KeyboardSettingsWindow()
@@ -491,12 +493,28 @@ final class AppState {
         }
     }
 
-    /// Baja en cuanto otra app abre la salida y vuelve en cuanto la cierran todas. Sin espera
-    /// propia: Dia, por ejemplo, ya la deja abierta unos 20 s tras pausar, y eso cubre los huecos
-    /// entre canción y canción
+    /// Lo que tiene que durar otro audio para que TICS baje: un aviso (afplay, un mensaje) dura
+    /// un segundo o dos, y bajar por él se notaba como un bache
+    static let lowerDelay: Duration = .seconds(2)
+
+    /// Baja cuando otra app lleva `lowerDelay` con la salida abierta y vuelve en cuanto la cierran
+    /// todas. Al volver no espera: Dia, por ejemplo, ya la deja abierta unos 20 s tras pausar, y eso
+    /// cubre los huecos entre canción y canción
     private func otherAudioDidChange(_ apps: [String]) {
-        loweredBy = apps
-        updateDuck()
+        lowerWait?.cancel()
+        lowerWait = nil
+        // Ya más bajo, o volviendo: al momento. Lo que cambia es solo empezar a bajar
+        guard loweredBy.isEmpty, !apps.isEmpty else {
+            loweredBy = apps
+            updateDuck()
+            return
+        }
+        lowerWait = Task { [weak self] in
+            try? await Task.sleep(for: Self.lowerDelay)
+            guard !Task.isCancelled, let self else { return }
+            loweredBy = apps
+            updateDuck()
+        }
     }
 
     private func updateDuck() {
