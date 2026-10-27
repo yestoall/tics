@@ -6,8 +6,13 @@
 //  - Cuándo se abre y se cierra: MenuBarExtra no desmonta la vista al cerrar el panel, así que
 //    onAppear solo salta la primera vez. La ventana sí avisa cuando pasa a verse o deja de verse.
 //    No vale con que sea la activa: abrir otra ventana de Tics se la quita sin cerrar el panel.
+//  - Su alto: MenuBarExtra hace crecer la ventana cuando crece el panel, pero no la encoge cuando
+//    mengua con el panel cerrado. El panel se quedaba en medio de una ventana más alta, y su fondo
+//    de serie, con sus esquinas de serie, dentro del recorte: pasaba al abrirlo con otro audio
+//    sonando, que añade una línea a «Más bajo con otro audio», y volver a abrirlo ya sin él
+//    (2026-10-27). Esta vista va de fondo del panel y mide lo que él: la ventana se ajusta a ella.
 // Se apoya en cómo monta Apple esa ventana por dentro: si cambia, el panel vuelve a lo de serie.
-// Por eso se rehace al abrirlo cada vez, y no solo la primera.
+// Al abrirlo se rehace todo, porque MenuBarExtra vuelve a poner su animación cada vez.
 
 import AppKit
 import SwiftUI
@@ -69,10 +74,26 @@ private final class WindowView: NSView {
         let visible = window.isVisible && window.occlusionState.contains(.visible)
         guard visible != isVisible else { return }
         isVisible = visible
-        // Con cada apertura, otra vez: tras horas abierta, el panel salió con las esquinas de serie,
-        // como si macOS hubiera rehecho la ventana (2026-10-27). No se supo qué lo provocó
-        if visible { apply() }
+        if visible {
+            fitWindow()
+            apply()
+        }
         onVisibility?(visible)
+    }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        // Fuera de la pasada de maquetación en la que llega
+        DispatchQueue.main.async { [weak self] in self?.fitWindow() }
+    }
+
+    /// La ventana, del alto del panel, con el borde de arriba donde estaba: pegado a la barra
+    private func fitWindow() {
+        guard let window, bounds.height > 0, abs(window.frame.height - bounds.height) > 0.5 else { return }
+        var frame = window.frame
+        frame.origin.y += frame.height - bounds.height
+        frame.size.height = bounds.height
+        window.setFrame(frame, display: true)
     }
 
     private func apply() {
