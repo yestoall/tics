@@ -18,8 +18,11 @@ struct MouseSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Al soltar un ajuste suena una muestra. Con esta ventana abierta, el ratón suena con lo que pongas.")
-                .foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                AppIcon()
+                Text("Al soltar un ajuste suena una muestra. Con esta ventana abierta, el ratón suena con lo que pongas.")
+                    .foregroundStyle(.secondary)
+            }
 
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 3), spacing: 16) {
                 ForEach(sounds, id: \.self) { sound in
@@ -89,6 +92,16 @@ private struct SoundCard: View {
     }
 }
 
+/// El icono de TICS, delante del texto de las ventanas de ajustes: que se vea de quién son
+struct AppIcon: View {
+    var body: some View {
+        Image(nsImage: NSApp.applicationIconImage)
+            .resizable()
+            .frame(width: 44, height: 44)
+            .accessibilityHidden(true)
+    }
+}
+
 //- Ventana -
 
 @MainActor
@@ -102,7 +115,8 @@ final class MouseSettingsWindow: NSObject, NSWindowDelegate {
             self.onClose = onClose
             let view = MouseSettingsView(editor: editor, state: state)
             let window = NSWindow(contentViewController: NSHostingController(rootView: view))
-            window.title = String(localized: "Ajustes del ratón")
+            window.title = "TICS"
+            window.subtitle = String(localized: "Sonidos del ratón")
             window.styleMask = [.titled, .closable]
             window.isReleasedWhenClosed = false
             window.delegate = self

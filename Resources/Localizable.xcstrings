@@ -130,38 +130,6 @@
         }
       }
     },
-    "Ajustes del ratón": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mouse Settings"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajustes del ratón"
-          }
-        }
-      }
-    },
-    "Ajustes del teclado": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Keyboard Settings"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajustes del teclado"
-          }
-        }
-      }
-    },
     "Al soltar un ajuste suena una muestra. Con esta ventana abierta, el ratón suena con lo que pongas.": {
       "localizations": {
         "en": {
@@ -942,6 +910,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sonidos de [Mechvibes](https://github.com/hainguyents13/mechvibes) y [kbsim](https://github.com/tplai/kbsim), con licencia MIT."
+          }
+        }
+      }
+    },
+    "Sonidos del ratón": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mouse Sounds"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonidos del ratón"
+          }
+        }
+      }
+    },
+    "Sonidos del teclado": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard Sounds"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sonidos del teclado"
           }
         }
       }

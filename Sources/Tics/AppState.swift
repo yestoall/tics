@@ -388,6 +388,7 @@ final class AppState {
             openSettings = .keyboard
             updateMonitors()
         }
+        enterDock()
         keyboardSettingsWindow.show(editor: keyboardSettingsEditor, packs: packs) { [weak self] in
             self?.keyboardSettingsDidClose()
         }
@@ -395,6 +396,7 @@ final class AppState {
 
     private func keyboardSettingsDidClose() {
         if openSettings == .keyboard { openSettings = nil }
+        leaveDockIfNoSettings()
         keyboardSettingsEditor.endEditing()
         updateMonitors()
     }
@@ -408,6 +410,7 @@ final class AppState {
             openSettings = .mouse
             updateMonitors()
         }
+        enterDock()
         mouseSettingsWindow.show(editor: mouseSettingsEditor, state: self) { [weak self] in
             self?.mouseSettingsDidClose()
         }
@@ -415,6 +418,7 @@ final class AppState {
 
     private func mouseSettingsDidClose() {
         if openSettings == .mouse { openSettings = nil }
+        leaveDockIfNoSettings()
         updateMonitors()
     }
 
@@ -423,6 +427,23 @@ final class AppState {
     private func mouseSettingsDidChange(_ settings: MouseSettings) {
         audio.mouseSettings = settings
         updateMonitors()
+    }
+
+    //- El Dock -
+
+    /// Con una ventana de ajustes abierta, TICS sale en el Dock y en ⌘Tab, y su nombre en la barra de
+    /// menús de macOS, como cualquier app: sin eso, la ventana no dice de quién es
+    private func enterDock() {
+        NSApp.setActivationPolicy(.regular)
+    }
+
+    /// Al cerrar la última. Un momento después: al pasar de una ventana a la otra, la primera se
+    /// cierra antes de que se abra la segunda, y el icono saldría y entraría del Dock
+    private func leaveDockIfNoSettings() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, openSettings == nil else { return }
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 
     //- Abrir al iniciar sesión -

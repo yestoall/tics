@@ -24,10 +24,13 @@ struct KeyboardSettingsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Haz que las teclas de un grupo, o una sola, suenen como las de otro pack. Vale con todos los packs, y con esta ventana abierta el teclado suena aunque lo tengas callado.")
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 24)
+            HStack(spacing: 12) {
+                AppIcon()
+                Text("Haz que las teclas de un grupo, o una sola, suenen como las de otro pack. Vale con todos los packs, y con esta ventana abierta el teclado suena aunque lo tengas callado.")
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 24)
 
             rows
 
@@ -277,7 +280,9 @@ final class KeyboardSettingsWindow: NSObject, NSWindowDelegate {
             self.onClose = onClose
             let view = KeyboardSettingsView(editor: editor, packs: packs)
             let window = NSWindow(contentViewController: NSHostingController(rootView: view))
-            window.title = String(localized: "Ajustes del teclado")
+            // TICS no sale en la barra de menús de macOS: que lo diga la ventana, y qué cambia
+            window.title = "TICS"
+            window.subtitle = String(localized: "Sonidos del teclado")
             window.styleMask = [.titled, .closable]
             window.isReleasedWhenClosed = false
             window.delegate = self
