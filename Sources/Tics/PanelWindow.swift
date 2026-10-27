@@ -7,6 +7,7 @@
 //    onAppear solo salta la primera vez. La ventana sí avisa cuando pasa a verse o deja de verse.
 //    No vale con que sea la activa: abrir otra ventana de Tics se la quita sin cerrar el panel.
 // Se apoya en cómo monta Apple esa ventana por dentro: si cambia, el panel vuelve a lo de serie.
+// Por eso se rehace al abrirlo cada vez, y no solo la primera.
 
 import AppKit
 import SwiftUI
@@ -68,6 +69,9 @@ private final class WindowView: NSView {
         let visible = window.isVisible && window.occlusionState.contains(.visible)
         guard visible != isVisible else { return }
         isVisible = visible
+        // Con cada apertura, otra vez: tras horas abierta, el panel salió con las esquinas de serie,
+        // como si macOS hubiera rehecho la ventana (2026-10-27). No se supo qué lo provocó
+        if visible { apply() }
         onVisibility?(visible)
     }
 
