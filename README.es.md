@@ -4,7 +4,7 @@
 
 Tu Mac suena como un teclado mecánico al teclear, y como un ratón al hacer clic.
 
-Versión 0.2.1
+Versión 0.3.0
 
 [![Mira TICS en YouTube, con sonido](https://img.youtube.com/vi/_GZCnr1pWfg/maxresdefault.jpg)](https://youtu.be/_GZCnr1pWfg)
 
