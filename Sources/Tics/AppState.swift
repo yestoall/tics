@@ -96,12 +96,31 @@ final class AppState {
 
     /// Más bajo a mano, con el botón del panel: lo mismo que con otro audio, hasta volver a pulsarlo.
     /// No se guarda: al reabrir TICS, vuelve a su volumen
-    var isManuallyLowered = false {
+    private var isManuallyLowered = false {
         didSet { updateDuck() }
     }
 
-    /// Si suena más bajo ahora, a mano o por otro audio
-    var isLowered: Bool { isManuallyLowered || !loweredBy.isEmpty }
+    /// El botón apagado mientras bajaba por otro audio: a su volumen hasta que ese audio pare
+    private var ignoresOtherAudio = false {
+        didSet { updateDuck() }
+    }
+
+    /// Si baja ahora por otro audio, y el panel dice por qué apps
+    var isLoweredByOtherAudio: Bool { !loweredBy.isEmpty && !ignoresOtherAudio }
+
+    /// Si suena más bajo ahora, a mano o por otro audio. El botón «Más bajo» se enciende con los dos
+    var isLowered: Bool { isManuallyLowered || isLoweredByOtherAudio }
+
+    /// El botón «Más bajo»: apagarlo vuelve al volumen elegido aunque siga el otro audio
+    func toggleLowered() {
+        if isLowered {
+            isManuallyLowered = false
+            ignoresOtherAudio = !loweredBy.isEmpty
+        } else {
+            ignoresOtherAudio = false
+            isManuallyLowered = true
+        }
+    }
 
     /// Lo que suena de verdad: el volumen elegido, o su parte si está más bajo. La barra del panel
     /// pinta su relleno hasta aquí
@@ -506,6 +525,8 @@ final class AppState {
         // Ya más bajo, o volviendo: al momento. Lo que cambia es solo empezar a bajar
         guard loweredBy.isEmpty, !apps.isEmpty else {
             loweredBy = apps
+            // Parado el otro audio, el botón apagado ya no lo ignora: con el siguiente, vuelve a bajar
+            if apps.isEmpty { ignoresOtherAudio = false }
             updateDuck()
             return
         }

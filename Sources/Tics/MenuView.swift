@@ -29,13 +29,14 @@ struct MenuView: View {
                 VStack(spacing: 12) {
                     PackMenu(state: state)
                     // Callar y bajar, delante de la barra. Se apagan volviendo a pulsarlos, y no se
-                    // desactivan con la barra: si no, callada ya no se podría quitar
+                    // desactivan con la barra: si no, callada ya no se podría quitar. «Más bajo» se
+                    // enciende también al bajar por otro audio: apagado, nunca suena más bajo
                     HStack(spacing: 8) {
                         VolumeButton(icon: "speaker.slash.fill", label: "Callar TICS", isOn: state.isMuted) {
                             state.isMuted.toggle()
                         }
-                        VolumeButton(icon: "speaker.minus.fill", label: "Más bajo", isOn: state.isManuallyLowered) {
-                            state.isManuallyLowered.toggle()
+                        VolumeButton(icon: "speaker.minus.fill", label: "Más bajo", isOn: state.isLowered) {
+                            state.toggleLowered()
                         }
                         // El tirador es el volumen elegido; el relleno y las ondas, lo que suena,
                         // que más bajo es menos. Cambian con el mismo fundido que el sonido
@@ -578,7 +579,7 @@ private struct LowerWithOtherAudio: View {
                     .labelsHidden()
                     .toggleStyle(.switch)
             }
-            if !state.loweredBy.isEmpty {
+            if state.isLoweredByOtherAudio {
                 Text("Ahora más bajo por \(apps)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
