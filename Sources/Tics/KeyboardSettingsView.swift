@@ -144,7 +144,7 @@ private struct ChangedGroupRow: View {
                 Text(group.title)
                     .font(.title3.bold())
                     // Sin texto, macOS no enseña nada
-                    .help(group == .wide ? Text("Return, borrar, Tab, Mayúsculas y Bloq Mayús") : Text(verbatim: ""))
+                    .help(group == .wide ? Text("Borrar, Tab, Mayúsculas y Bloq Mayús") : Text(verbatim: ""))
                 Spacer()
                 SoundPicker(
                     packID: Binding(get: { changed.packID }, set: { editor.changePack(of: group, to: $0) }),
@@ -224,6 +224,7 @@ private extension KeyGroup {
         switch self {
         case .normal: "Teclas normales"
         case .space: "Espacio"
+        case .enter: "Return"
         case .wide: "Teclas anchas"
         }
     }

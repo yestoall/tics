@@ -68,16 +68,16 @@ private func sameSounds(_ sounds: [AVAudioPCMBuffer], _ expected: [AVAudioPCMBuf
 }
 
 @Test func unaTeclaCambiadaSuenaALaAlturaDeSuGrupo() throws {
-    // Return con el espacio del Cherry MX Blue: a la altura de las anchas de Oreo, no de sus normales
+    // Return con el espacio del Cherry MX Blue: a la altura del Return de Oreo, no de sus normales
     let oreo = try load("eg-oreo")
     let blue = try load("cherrymx-blue-abs")
     var settings = KeyboardSettings()
     settings.change(ChangedKey(key: KeyChord(keyReturn), packID: "cherrymx-blue-abs", sourceKey: space))
     let sounds = KeyboardSounds(pack: oreo, settings: settings, sources: ["cherrymx-blue-abs": blue])
 
-    let wide = oreo.only(.wide).typicalLoudness
+    let enter = oreo.only(.enter).typicalLoudness
     let level = Loudness.typical(of: sounds.sounds(for: keyReturn, isDown: true))
-    #expect(abs(level - wide) < wide * 0.05)
+    #expect(abs(level - enter) < enter * 0.05)
 }
 
 @Test func conOtroTonoSigueALaAlturaDelPackActivo() throws {
@@ -494,4 +494,23 @@ private let leftCmd: UInt16 = 0x37
     // Mantener el espacio suele ser un modo, como mover el lienzo en Figma, no escribir espacios
     #expect(sounds.sound(for: KeyEvent(keyCode: space, isDown: true)) != nil)
     #expect(sounds.sound(for: KeyEvent(keyCode: space, isDown: true, isRepeat: true)) == nil)
+}
+
+@Test func returnEIntroVanEnSuGrupoYNoEnElDeLasAnchas() {
+    #expect(KeyGroup(keyCode: keyReturn) == .enter)
+    #expect(KeyGroup(keyCode: 0x4C) == .enter)
+    #expect(KeyGroup(keyCode: 0x33) == .wide)
+    #expect(KeyGroup.wide.keys.isDisjoint(with: KeyGroup.enter.keys))
+}
+
+@Test func returnSeCambiaSinTocarLasAnchas() throws {
+    let oreo = try load("eg-oreo")
+    let blue = try load("cherrymx-blue-abs")
+    var settings = KeyboardSettings()
+    settings[.enter].packID = "cherrymx-blue-abs"
+    let sounds = KeyboardSounds(pack: oreo, settings: settings, sources: ["cherrymx-blue-abs": blue])
+    // Return suena con el Cherry MX Blue; borrar, con Oreo
+    func lengths(_ buffers: [AVAudioPCMBuffer]) -> Set<AVAudioFrameCount> { Set(buffers.map(\.frameLength)) }
+    #expect(lengths(sounds.sounds(for: keyReturn, isDown: true)) == lengths(blue.only(.enter).sounds(for: keyReturn, isDown: true)))
+    #expect(lengths(sounds.sounds(for: 0x33, isDown: true)) == lengths(oreo.sounds(for: 0x33, isDown: true)))
 }

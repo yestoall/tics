@@ -178,6 +178,22 @@
         }
       }
     },
+    "Borrar, Tab, Mayúsculas y Bloq Mayús": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete, Tab, Shift, and Caps Lock"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar, Tab, Mayúsculas y Bloq Mayús"
+          }
+        }
+      }
+    },
     "Botones de Options+": {
       "localizations": {
         "en": {
@@ -802,18 +818,18 @@
         }
       }
     },
-    "Return, borrar, Tab, Mayúsculas y Bloq Mayús": {
+    "Return": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Return, Delete, Tab, Shift, and Caps Lock"
+            "value": "Return"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Return, borrar, Tab, Mayúsculas y Bloq Mayús"
+            "value": "Return"
           }
         }
       }

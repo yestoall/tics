@@ -17,7 +17,7 @@ extension LoadedPack {
     static let maxPeak: Float = 0.99
 
     /// Solo las teclas de un grupo, con lo que suena en cada una. En las normales se queda el
-    /// sonido de reserva; el espacio y las anchas que no tienen el suyo se quedan con él
+    /// sonido de reserva; las del espacio, Return y las anchas que no tienen el suyo se quedan con él
     func only(_ group: KeyGroup) -> LoadedPack {
         var result = LoadedPack()
         result.down = down.filter { KeyGroup(keyCode: $0.key) == group }
@@ -26,9 +26,8 @@ extension LoadedPack {
         case .normal:
             result.fallbackDown = fallbackDown
             result.fallbackUp = fallbackUp
-        case .space, .wide:
-            let keys = group == .space ? [KeyGroup.spaceKey] : Array(KeyGroup.wideKeys)
-            for key in keys where result.down[key] == nil {
+        case .space, .enter, .wide:
+            for key in group.keys where result.down[key] == nil {
                 result.down[key] = fallbackDown
                 result.up[key] = fallbackUp
             }
