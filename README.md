@@ -17,6 +17,14 @@ Open the .dmg and drag TICS to Applications. It needs macOS 14 or later and work
 silicon and Intel Macs. The first time you open it, macOS asks for permission to listen to the
 keyboard.
 
+Or install it with [Homebrew](https://brew.sh):
+
+```bash
+brew install --cask yestoall/tap/tics
+```
+
+To update it later, run `brew upgrade --cask tics`.
+
 ## Why
 
 I made TICS for myself. There's something about the clack of a mechanical keyboard that feels

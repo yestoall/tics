@@ -16,6 +16,14 @@ Versión 0.3.0
 Abre el .dmg y arrastra TICS a Aplicaciones. Pide macOS 14 o posterior y va en Mac con Apple
 silicon e Intel. La primera vez que la abres, macOS te pide permiso para escuchar el teclado.
 
+O instálala con [Homebrew](https://brew.sh):
+
+```bash
+brew install --cask yestoall/tap/tics
+```
+
+Para ponerla al día más adelante, usa `brew upgrade --cask tics`.
+
 ## Por qué
 
 TICS la hice para mí. Hay algo en el clac de un teclado mecánico que sienta bien: cada tecla te
