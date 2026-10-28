@@ -36,6 +36,14 @@ rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/Tics"
 cp Info.plist "$APP/Contents/Info.plist"
+# La de desarrollo es otra app para macOS: su permiso del teclado no se pisa con el de la de repartir,
+# que va con otra firma y lo invalidaría al cambiar de una a otra (2026-10-27). Y sus propios ajustes
+if [ "$CONFIG" != "dist" ]; then
+  PLIST="$APP/Contents/Info.plist"
+  /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.yestoall.tics.dev" "$PLIST"
+  /usr/libexec/PlistBuddy -c "Set :CFBundleName TICS Dev" "$PLIST"
+  /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName TICS Dev" "$PLIST"
+fi
 cp -R Resources/SoundPacks "$APP/Contents/Resources/SoundPacks"
 # El icono lo genera scripts/icon.swift
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
