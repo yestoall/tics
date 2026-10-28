@@ -1,11 +1,12 @@
 //· KeyboardSettingsEditor ·
 // Los ajustes del teclado y su edición: elegir una tecla o un atajo pulsándolo, elegir la tecla de
-// origen de una tecla cambiada, y el pack, el tono y el volumen de los grupos y las teclas. Lo que
-// pulsas para elegir no suena, ni al soltarlo ni al repetirse. Guarda los ajustes en cada cambio y
-// avisa al audio; vive lo que la app, con la ventana abierta o cerrada.
+// origen de una tecla cambiada o un sonido propio, y el pack, el tono y el volumen de los grupos y
+// las teclas. Lo que pulsas para elegir no suena, ni al soltarlo ni al repetirse. Guarda los ajustes
+// en cada cambio y avisa al audio; vive lo que la app, con la ventana abierta o cerrada.
 
 import Foundation
 import Observation
+import os
 
 @MainActor @Observable
 final class KeyboardSettingsEditor {
@@ -19,14 +20,22 @@ final class KeyboardSettingsEditor {
     private(set) var settings: KeyboardSettings
     /// Mientras la ventana espera una tecla, lo que pulsas no suena: se elige
     private(set) var keyCapture: KeyCapture?
+    /// El fichero que no se pudo leer como audio en cada tecla, para decirlo en su fila. Se va al
+    /// cambiar algo de la tecla
+    private(set) var unreadableFiles: [KeyChord: String] = [:]
+    /// Los sonidos propios cuya copia ya no está: esas teclas suenan como en el pack. Se mira al
+    /// abrir TICS y al guardar
+    private(set) var missingCopies: Set<CustomSound> = []
 
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let customSounds: CustomSoundStore
     @ObservationIgnored private let playSample: @MainActor (KeyChord) -> Void
     @ObservationIgnored private let settingsDidChange: @MainActor (KeyboardSettings) -> Void
     /// Las teclas que se eligieron al pulsarlas: su soltar tampoco suena
     @ObservationIgnored private var mutedReleases: Set<UInt16> = []
     /// Lo que llevas pulsado mientras la ventana espera una tecla o un atajo nuevo
     @ObservationIgnored private var chordCapture = ChordCapture()
+    @ObservationIgnored private let log = Logger(subsystem: "com.yestoall.tics", category: "KeyboardSettingsEditor")
 
     private static let key = "keyboardSettings"
 
@@ -34,14 +43,17 @@ final class KeyboardSettingsEditor {
     /// cada cambio guardado, para que el audio lo rehaga
     init(
         defaults: UserDefaults,
+        customSounds: CustomSoundStore,
         playSample: @escaping @MainActor (KeyChord) -> Void,
         settingsDidChange: @escaping @MainActor (KeyboardSettings) -> Void
     ) {
         self.defaults = defaults
+        self.customSounds = customSounds
         self.playSample = playSample
         self.settingsDidChange = settingsDidChange
         settings = defaults.data(forKey: Self.key)
             .flatMap { try? JSONDecoder().decode(KeyboardSettings.self, from: $0) } ?? KeyboardSettings()
+        missingCopies = settings.customSounds.filter { !customSounds.contains($0) }
     }
 
     //- Teclas -
@@ -109,14 +121,34 @@ final class KeyboardSettingsEditor {
     func changePack(of key: KeyChord, to packID: String?) {
         guard var changed = settings[key] else { return }
         changed.packID = packID
+        changed.customSound = nil
         if packID == nil { changed.sourceKey = key.keyCode }
         change(changed)
         if packID == nil { stopCapturing() } else { keyCapture = .source(of: key) }
         playSample(key)
     }
 
+    /// Un fichero tuyo en una tecla cambiada: TICS guarda su copia y la tecla suena con ella. Si no
+    /// se puede leer como audio, la tecla se queda como estaba y su fila lo dice
+    func setCustomSound(of key: KeyChord, from url: URL) {
+        guard var changed = settings[key] else { return }
+        do {
+            changed.customSound = try customSounds.importSound(from: url)
+        } catch {
+            log.error("No se pudo usar \(url.lastPathComponent, privacy: .public) como sonido propio: \(error.localizedDescription, privacy: .public)")
+            unreadableFiles[key] = url.lastPathComponent
+            return
+        }
+        changed.packID = nil
+        changed.sourceKey = key.keyCode
+        if keyCapture == .source(of: key) { stopCapturing() }
+        change(changed)
+        playSample(key)
+    }
+
     func remove(_ key: KeyChord) {
         if keyCapture == .source(of: key) { stopCapturing() }
+        unreadableFiles[key] = nil
         settings.remove(key)
         save()
     }
@@ -132,6 +164,7 @@ final class KeyboardSettingsEditor {
 
     /// Al soltar el tono o el volumen: lo guarda, rehace lo que suena y suena la tecla
     func tuningDidChange(_ key: KeyChord) {
+        unreadableFiles[key] = nil
         save()
         playSample(key)
     }
@@ -165,6 +198,7 @@ final class KeyboardSettingsEditor {
     /// Todos los grupos y todas las teclas, otra vez como en el pack activo
     func reset() {
         stopCapturing()
+        unreadableFiles = [:]
         settings = KeyboardSettings()
         save()
     }
@@ -172,12 +206,16 @@ final class KeyboardSettingsEditor {
     //- Guardar -
 
     private func change(_ changed: ChangedKey) {
+        unreadableFiles[changed.key] = nil
         settings.change(changed)
         save()
     }
 
+    /// Y borra las copias de los sonidos propios que ya no usa ninguna tecla
     private func save() {
         defaults.set(try? JSONEncoder().encode(settings), forKey: Self.key)
         settingsDidChange(settings)
+        customSounds.removeAll(except: settings.customSounds)
+        missingCopies = settings.customSounds.filter { !customSounds.contains($0) }
     }
 }

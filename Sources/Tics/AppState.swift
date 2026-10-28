@@ -207,6 +207,7 @@ final class AppState {
         self.audio = audio
         keyboardSettingsEditor = KeyboardSettingsEditor(
             defaults: .standard,
+            customSounds: audio.customSounds,
             playSample: { audio.playKeySample($0) },
             settingsDidChange: { audio.useKeyboardSettings($0, packs: packs) }
         )

@@ -243,7 +243,7 @@ private func isScaled(_ copy: AVAudioPCMBuffer, of original: AVAudioPCMBuffer) -
     let sources = ["holy-pandas": pandas]
     let before = KeyboardSounds(pack: oreo, settings: settings, sources: sources)
     settings.change(ChangedKey(key: KeyChord(keyReturn), packID: "holy-pandas", sourceKey: keyA, volume: 2))
-    let after = before.updated(settings: settings, sources: sources)
+    let after = before.updated(settings: settings, sources: sources, custom: [:])
 
     func same(_ key: UInt16) -> Bool {
         zip(before.sounds(for: key, isDown: true), after.sounds(for: key, isDown: true)).allSatisfy { $0 === $1 }
@@ -453,7 +453,7 @@ private let leftCmd: UInt16 = 0x37
 
     // ⌘A abajo mientras cambias de pack: al soltar la A sigue siendo ⌘A
     _ = sounds.sound(for: KeyEvent(keyCode: keyA, isDown: true, flags: cmd))
-    sounds.changePack(to: pandas, settings: settings, sources: ["cherrymx-blue-abs": blue])
+    sounds.changePack(to: pandas, settings: settings, sources: ["cherrymx-blue-abs": blue], custom: [:])
     #expect(sameSounds(sounds.sound(for: KeyEvent(keyCode: keyA, isDown: false))?.variants ?? [], blue.sounds(for: space, isDown: false)))
     // Lo demás ya suena con el pack nuevo
     #expect(sounds.sound(for: KeyEvent(keyCode: keyB, isDown: true))?.variants == pandas.sounds(for: keyB, isDown: true))

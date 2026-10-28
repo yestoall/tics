@@ -418,6 +418,22 @@
         }
       }
     },
+    "Elegir": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir"
+          }
+        }
+      }
+    },
     "Es open source: [el código está en GitHub](https://github.com/yestoall/tics).": {
       "localizations": {
         "en": {
@@ -446,6 +462,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Espacio"
+          }
+        }
+      }
+    },
+    "Fichero…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichero…"
           }
         }
       }
@@ -590,6 +622,38 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ninguna"
+          }
+        }
+      }
+    },
+    "No está el fichero «%@»: suena como en el pack": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@” is missing, so this key sounds like the pack"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No está el fichero «%@»: suena como en el pack"
+          }
+        }
+      }
+    },
+    "No se puede leer «%@» como audio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can’t read “%@” as audio"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede leer «%@» como audio"
           }
         }
       }

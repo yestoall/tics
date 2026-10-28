@@ -10,6 +10,10 @@ import os
 struct CurrentSounds {
     private let format: AVAudioFormat
     private let load: (SoundPack) throws -> LoadedPack
+    /// Lee la copia de un sonido propio, o nada si ya no está
+    private let loadCustom: (CustomSound) -> AVAudioPCMBuffer?
+    /// Los sonidos propios de las teclas cambiadas, cargados: solo los que se usan
+    private var customSounds: [CustomSound: AVAudioPCMBuffer] = [:]
     private var pack = LoadedPack()
     /// Lo que suena cada tecla: el pack con los ajustes del teclado encima
     private var keys = KeyboardSounds(pack: LoadedPack(), settings: KeyboardSettings(), sources: [:])
@@ -27,9 +31,13 @@ struct CurrentSounds {
         didSet { if mouseSettings != oldValue { matchMouse() } }
     }
 
-    init(format: AVAudioFormat, load: @escaping (SoundPack) throws -> LoadedPack) {
+    init(
+        format: AVAudioFormat, load: @escaping (SoundPack) throws -> LoadedPack,
+        loadCustom: @escaping (CustomSound) -> AVAudioPCMBuffer?
+    ) {
         self.format = format
         self.load = load
+        self.loadCustom = loadCustom
     }
 
     //- Pack activo -
@@ -37,7 +45,7 @@ struct CurrentSounds {
     /// Lee el pack y rehace las teclas y los clics a su altura
     mutating func use(_ soundPack: SoundPack) throws {
         pack = try load(soundPack)
-        keys.changePack(to: pack, settings: keyboardSettings, sources: sources.mapValues(\.pack))
+        keys.changePack(to: pack, settings: keyboardSettings, sources: sources.mapValues(\.pack), custom: customSounds)
         matchVariants()
         matchMouse()
     }
@@ -62,7 +70,13 @@ struct CurrentSounds {
             }
         }
         sources = next
-        keys = keys.updated(settings: settings, sources: sources.mapValues(\.pack))
+        // Los sonidos propios: se lee del disco solo el que no estaba
+        var loaded: [CustomSound: AVAudioPCMBuffer] = [:]
+        for sound in settings.customSounds {
+            if let buffer = customSounds[sound] ?? loadCustom(sound) { loaded[sound] = buffer }
+        }
+        customSounds = loaded
+        keys = keys.updated(settings: settings, sources: sources.mapValues(\.pack), custom: customSounds)
         matchVariants()
     }
 

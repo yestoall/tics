@@ -112,7 +112,12 @@ struct PackLoader {
             pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length)
         ) else { throw PackLoaderError.unreadableAudio(url.lastPathComponent) }
         try file.read(into: source)
+        return try toEngineFormat(source, name: url.lastPathComponent)
+    }
 
+    /// Audio leído de un archivo, en el formato del motor. Los sonidos propios lo leen a trozos
+    /// (CustomSoundStore) y luego lo pasan por aquí
+    func toEngineFormat(_ source: AVAudioPCMBuffer, name: String) throws -> AVAudioPCMBuffer {
         var buffer = source
         if buffer.format.sampleRate != format.sampleRate {
             buffer = try resample(buffer)
@@ -120,7 +125,7 @@ struct PackLoader {
         if buffer.format.channelCount == 1 {
             buffer = try monoToStereo(buffer)
         }
-        guard buffer.format == format else { throw PackLoaderError.unreadableAudio(url.lastPathComponent) }
+        guard buffer.format == format else { throw PackLoaderError.unreadableAudio(name) }
         return buffer
     }
 

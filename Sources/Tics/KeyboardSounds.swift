@@ -28,6 +28,8 @@ struct KeyboardSounds {
         let changed: ChangedKey
         /// Una tecla «Del pack» parte de lo que suena debajo de ella: esto, si está cambiado
         let base: Base?
+        /// Si su sonido propio estaba cargado: si aparece o desaparece, se rehace
+        var hasCustomSound = false
     }
 
     /// Lo que hay debajo de una tecla: un atajo tiene su tecla sola, y una tecla, su grupo
@@ -53,34 +55,43 @@ struct KeyboardSounds {
     /// Con qué se pulsó cada tecla que sigue abajo
     private var pressed: [UInt16: KeyChord] = [:]
 
-    /// `sources` son los packs de origen, ya cargados, por id. Una tecla o un grupo cuyo pack no
-    /// está entre ellos sigue sonando como si no estuviera cambiado
-    init(pack: LoadedPack, settings: KeyboardSettings, sources: [String: LoadedPack]) {
+    /// `sources` son los packs de origen, ya cargados, por id, y `custom`, los sonidos propios. Una
+    /// tecla o un grupo cuyo sonido no está entre ellos sigue sonando como si no estuviera cambiado
+    init(
+        pack: LoadedPack, settings: KeyboardSettings, sources: [String: LoadedPack],
+        custom: [CustomSound: AVAudioPCMBuffer] = [:]
+    ) {
         self.pack = pack
-        build(settings, sources: sources, reusing: nil)
+        build(settings, sources: sources, custom: custom, reusing: nil)
     }
 
     /// Todo otra vez sobre otro pack. Las teclas que siguen abajo sueltan con lo que se pulsaron
-    mutating func changePack(to pack: LoadedPack, settings: KeyboardSettings, sources: [String: LoadedPack]) {
+    mutating func changePack(
+        to pack: LoadedPack, settings: KeyboardSettings, sources: [String: LoadedPack],
+        custom: [CustomSound: AVAudioPCMBuffer]
+    ) {
         let pressed = self.pressed
-        self = KeyboardSounds(pack: pack, settings: settings, sources: sources)
+        self = KeyboardSounds(pack: pack, settings: settings, sources: sources, custom: custom)
         self.pressed = pressed
     }
 
     /// Los mismos, con otros ajustes: lo que no ha cambiado se queda como estaba, sin remuestrear
     /// ni igualar otra vez
-    func updated(settings: KeyboardSettings, sources: [String: LoadedPack]) -> KeyboardSounds {
+    func updated(
+        settings: KeyboardSettings, sources: [String: LoadedPack], custom: [CustomSound: AVAudioPCMBuffer]
+    ) -> KeyboardSounds {
         var result = self
         result.groups = [:]
         result.keys = [:]
-        result.build(settings, sources: sources, reusing: self)
+        result.build(settings, sources: sources, custom: custom, reusing: self)
         return result
     }
 
     /// Lo que suena con una pulsación, si suena algo. El soltar y las repeticiones suenan con lo que
     /// sonó al pulsar, aunque entre medias hayas soltado las modificadoras: ⌘A suelta como ⌘A aunque
     /// sueltes antes el Cmd. Las repeticiones de una tecla mantenida suenan más flojo, y las del
-    /// espacio no suenan: mantenerlo suele ser un modo, como mover el lienzo en Figma
+    /// espacio no suenan: mantenerlo suele ser un modo, como mover el lienzo en Figma. Las de un
+    /// sonido propio tampoco: es un sonido entero, y se amontonaría
     mutating func sound(for event: KeyEvent) -> Sound? {
         if event.isRepeat && event.keyCode == KeyGroup.spaceKey { return nil }
         var chord = KeyChord(keyCode: event.keyCode, flags: event.flags)
@@ -90,6 +101,7 @@ struct KeyboardSounds {
             chord = held
             if !event.isDown { pressed[event.keyCode] = nil }
         }
+        if event.isRepeat, keys[chord]?.recipe.hasCustomSound == true { return nil }
         let variants = sounds(for: chord, isDown: event.isDown)
         guard !variants.isEmpty else { return nil }
         return Sound(variants: variants, volume: event.isRepeat ? Self.repeatVolume : 1)
@@ -125,7 +137,10 @@ struct KeyboardSounds {
         return groups[KeyGroup(keyCode: chord.keyCode)].map { .group($0.recipe) }
     }
 
-    private mutating func build(_ settings: KeyboardSettings, sources: [String: LoadedPack], reusing previous: KeyboardSounds?) {
+    private mutating func build(
+        _ settings: KeyboardSettings, sources: [String: LoadedPack], custom: [CustomSound: AVAudioPCMBuffer],
+        reusing previous: KeyboardSounds?
+    ) {
         for (group, changed) in settings.changedGroups {
             if let layer = previous?.groups[group], layer.recipe == changed {
                 groups[group] = layer
@@ -139,14 +154,18 @@ struct KeyboardSounds {
         // Las teclas antes que los atajos, que pueden partir de ellas
         let changedKeys = settings.changedKeys.filter { !$0.key.isShortcut } + settings.changedKeys.filter(\.key.isShortcut)
         for changed in changedKeys {
-            let recipe = KeyRecipe(changed: changed, base: changed.packID == nil ? base(of: changed.key) : nil)
+            let fromPack = changed.packID == nil && changed.customSound == nil
+            let recipe = KeyRecipe(
+                changed: changed, base: fromPack ? base(of: changed.key) : nil,
+                hasCustomSound: changed.customSound.map { custom[$0] != nil } ?? false
+            )
             if let layer = previous?.keys[changed.key], layer.recipe == recipe {
                 keys[changed.key] = layer
                 continue
             }
             // Una tecla «Del pack» no la necesita: se queda a su propia altura
-            let target = changed.packID == nil ? nil : loudness(of: KeyGroup(keyCode: changed.key.keyCode))
-            if let sounds = sounds(of: changed, groupLoudness: target, sources: sources) {
+            let target = fromPack ? nil : loudness(of: KeyGroup(keyCode: changed.key.keyCode))
+            if let sounds = sounds(of: changed, groupLoudness: target, sources: sources, custom: custom) {
                 keys[changed.key] = Layer(recipe: recipe, sounds: sounds)
             }
         }
@@ -177,14 +196,21 @@ struct KeyboardSounds {
     }
 
     /// La tecla de origen, a la altura de su grupo en el pack activo (ver Loudness) por su volumen:
-    /// una Return de otro pack suena como las anchas del pack activo. Una tecla «Del pack» parte de
-    /// lo que ya suena en ella, con su propia altura: a 1× no cambia nada
+    /// una Return de otro pack suena como la Return del pack activo. Un sonido propio, igual, y
+    /// solo al pulsar: es un sonido entero. Una tecla «Del pack» parte de lo que ya suena en ella,
+    /// con su propia altura: a 1× no cambia nada
     private func sounds(
-        of changed: ChangedKey, groupLoudness: Float?, sources: [String: LoadedPack]
+        of changed: ChangedKey, groupLoudness: Float?, sources: [String: LoadedPack],
+        custom: [CustomSound: AVAudioPCMBuffer]
     ) -> Sounds? {
         let original: Sounds
         let target: Float
-        if let id = changed.packID, let groupLoudness {
+        if let sound = changed.customSound, let groupLoudness {
+            // Si falta la copia, suena lo de debajo, como si no estuviera cambiada
+            guard let buffer = custom[sound] else { return nil }
+            original = Sounds(down: [buffer], up: [])
+            target = groupLoudness
+        } else if let id = changed.packID, let groupLoudness {
             guard let source = sources[id] else { return nil }
             original = Sounds(
                 down: source.sounds(for: changed.sourceKey, isDown: true),

@@ -50,6 +50,8 @@ struct ChangedKey: Codable, Equatable, Identifiable, Sendable {
     var pitch = 1.0
     /// Multiplica la altura a la que suena, la del pack activo
     var volume = 1.0
+    /// Un fichero tuyo en vez de la tecla de un pack (CustomSoundStore). Con él, `packID` no cuenta
+    var customSound: CustomSound?
 
     var id: KeyChord { key }
 
@@ -66,8 +68,9 @@ struct ChangedKey: Codable, Equatable, Identifiable, Sendable {
 }
 
 extension ChangedKey {
-    /// Lo guardado antes del tono y el volumen no los trae: se leen a 1×. En una extensión, para no
-    /// perder el init de todos los campos
+    /// Lo guardado antes del tono y el volumen no los trae: se leen a 1×; ni lo de antes de los
+    /// sonidos propios, que se lee sin él. En una extensión, para no perder el init de todos los
+    /// campos
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         key = try container.decode(KeyChord.self, forKey: .key)
@@ -75,6 +78,7 @@ extension ChangedKey {
         sourceKey = try container.decode(UInt16.self, forKey: .sourceKey)
         pitch = try container.decodeIfPresent(Double.self, forKey: .pitch) ?? 1
         volume = try container.decodeIfPresent(Double.self, forKey: .volume) ?? 1
+        customSound = try container.decodeIfPresent(CustomSound.self, forKey: .customSound)
         self = clamped
     }
 }
@@ -116,13 +120,18 @@ struct KeyboardSettings: Codable, Equatable, Sendable {
         changedKeys.removeAll { $0.key == key }
     }
 
+    /// Los sonidos propios que suenan en alguna tecla: los demás, ni se cargan ni se guardan
+    var customSounds: Set<CustomSound> {
+        Set(changedKeys.compactMap(\.customSound))
+    }
+
     /// Lo que se usa de cada pack de origen: lo demás no hace falta tenerlo en memoria
     var sources: [String: SourceUse] {
         var result: [String: SourceUse] = [:]
         for (group, changed) in changedGroups {
             if let id = changed.packID { result[id, default: SourceUse()].groups.insert(group) }
         }
-        for changed in changedKeys {
+        for changed in changedKeys where changed.customSound == nil {
             if let id = changed.packID { result[id, default: SourceUse()].keys.insert(changed.sourceKey) }
         }
         return result

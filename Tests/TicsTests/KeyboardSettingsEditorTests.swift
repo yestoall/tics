@@ -28,6 +28,7 @@ private func up(_ keyCode: UInt16, flags: UInt64 = 0) -> KeyEvent {
 @MainActor
 private final class Bench {
     let defaults: UserDefaults
+    let customSounds = makeTestStore()
     var samples: [KeyChord] = []
     var notified: [KeyboardSettings] = []
     private(set) var editor: KeyboardSettingsEditor!
@@ -41,6 +42,7 @@ private final class Bench {
     func makeEditor() -> KeyboardSettingsEditor {
         KeyboardSettingsEditor(
             defaults: defaults,
+            customSounds: customSounds,
             playSample: { [unowned self] in samples.append($0) },
             settingsDidChange: { [unowned self] in notified.append($0) }
         )
@@ -242,4 +244,69 @@ private final class Bench {
     bench.editor.tune(KeyChord(keyA), volume: 1.5)
     bench.editor.tuningDidChange(KeyChord(keyA))
     #expect(bench.makeEditor().settings == bench.editor.settings)
+}
+
+//- Sonidos propios -
+
+@MainActor @Test func alPonerUnFicheroEnUnaTeclaSuenaSeGuardaYDejaLaTeclaDeOrigen() throws {
+    let bench = Bench()
+    bench.editor.capture(.newKey)
+    _ = bench.sounding(down(keyB), up(keyB))
+    bench.editor.changePack(of: KeyChord(keyB), to: "holy-pandas")
+    bench.samples = []
+    bench.editor.setCustomSound(of: KeyChord(keyB), from: try testWav(silence: 0, tone: 0.5, name: "ding.wav"))
+    let changed = try #require(bench.editor.settings[KeyChord(keyB)])
+    #expect(changed.customSound?.name.hasSuffix("ding.wav") == true)
+    #expect(changed.packID == nil)
+    // Ya no espera la tecla del pack de origen, y suena la tecla para oírlo
+    #expect(bench.editor.keyCapture == nil)
+    #expect(bench.samples == [KeyChord(keyB)])
+    #expect(bench.makeEditor().settings[KeyChord(keyB)]?.customSound == changed.customSound)
+    #expect(bench.customSounds.contains(try #require(changed.customSound)))
+}
+
+@MainActor @Test func unFicheroQueNoSeLeeDejaLaTeclaComoEstabaYLoDice() throws {
+    let bench = Bench()
+    bench.editor.capture(.newKey)
+    _ = bench.sounding(down(keyB), up(keyB))
+    let before = bench.editor.settings
+    let pdf = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString)-notas.pdf")
+    try Data("%PDF".utf8).write(to: pdf)
+    bench.editor.setCustomSound(of: KeyChord(keyB), from: pdf)
+    #expect(bench.editor.settings == before)
+    #expect(bench.editor.unreadableFiles[KeyChord(keyB)] == pdf.lastPathComponent)
+    // Se va al cambiar algo de la tecla
+    bench.editor.tune(KeyChord(keyB), volume: 2)
+    bench.editor.tuningDidChange(KeyChord(keyB))
+    #expect(bench.editor.unreadableFiles[KeyChord(keyB)] == nil)
+}
+
+@MainActor @Test func laCopiaSeBorraCuandoYaNoLaUsaNingunaTecla() throws {
+    let bench = Bench()
+    bench.editor.capture(.newKey)
+    _ = bench.sounding(down(keyB), up(keyB))
+    bench.editor.setCustomSound(of: KeyChord(keyB), from: try testWav(silence: 0, tone: 0.5))
+    let first = try #require(bench.editor.settings[KeyChord(keyB)]?.customSound)
+    // Otro fichero en la misma tecla: el primero sobra
+    bench.editor.setCustomSound(of: KeyChord(keyB), from: try testWav(silence: 0, tone: 0.5))
+    let second = try #require(bench.editor.settings[KeyChord(keyB)]?.customSound)
+    #expect(!bench.customSounds.contains(first))
+    // De vuelta a un pack, sobra el segundo
+    bench.editor.changePack(of: KeyChord(keyB), to: nil)
+    #expect(bench.editor.settings[KeyChord(keyB)]?.customSound == nil)
+    #expect(!bench.customSounds.contains(second))
+}
+
+@MainActor @Test func siFaltaLaCopiaAlAbrirTicsLaFilaLoSabe() throws {
+    let bench = Bench()
+    bench.editor.capture(.newKey)
+    _ = bench.sounding(down(keyB), up(keyB))
+    bench.editor.setCustomSound(of: KeyChord(keyB), from: try testWav(silence: 0, tone: 0.5))
+    let sound = try #require(bench.editor.settings[KeyChord(keyB)]?.customSound)
+    #expect(bench.editor.missingCopies.isEmpty)
+    try FileManager.default.removeItem(at: bench.customSounds.folder.appendingPathComponent(sound.file))
+    // Otra vez abierta: falta, y la tecla cambiada sigue ahí, con su sonido propio
+    let reopened = bench.makeEditor()
+    #expect(reopened.missingCopies == [sound])
+    #expect(reopened.settings[KeyChord(keyB)]?.customSound == sound)
 }

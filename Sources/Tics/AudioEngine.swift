@@ -11,6 +11,8 @@ final class AudioEngine {
     static let playerCount = 16
 
     let format: AVAudioFormat
+    /// Las copias de los sonidos propios de las teclas cambiadas
+    let customSounds: CustomSoundStore
 
     private let engine = AVAudioEngine()
     private var players: [AVAudioPlayerNode] = []
@@ -62,7 +64,11 @@ final class AudioEngine {
     init() {
         let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 2)!
         self.format = format
-        sounds = CurrentSounds(format: format) { try PackLoader(format: format).load($0) }
+        let customSounds = CustomSoundStore(folder: CustomSoundStore.appFolder, format: format)
+        self.customSounds = customSounds
+        sounds = CurrentSounds(
+            format: format, load: { try PackLoader(format: format).load($0) }, loadCustom: customSounds.load
+        )
         for _ in 0..<Self.playerCount {
             let player = AVAudioPlayerNode()
             engine.attach(player)

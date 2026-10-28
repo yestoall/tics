@@ -1,6 +1,7 @@
 //· KeyboardSettingsView ·
 // La ventana de los ajustes del teclado: arriba, una fila por grupo de teclas, con el pack del que
-// salen; debajo, una por tecla cambiada, con el pack y la tecla de ese pack que suena en ella. Cada
+// salen; debajo, una por tecla cambiada, con el pack y la tecla de ese pack que suena en ella, o un
+// sonido propio: «Fichero…» en el desplegable, o soltar un fichero de audio en la fila. Cada
 // fila lleva su tono y su volumen; con muchas, las filas se desplazan entre el texto y los botones.
 // Las teclas se eligen pulsándolas, y lo que pulsas para elegir no suena (KeyboardSettingsEditor).
 // Al soltar un ajuste suena la tecla, y mientras la ventana está abierta, el teclado suena con lo
@@ -8,6 +9,7 @@
 
 import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct KeyboardSettingsView: View {
     @Bindable var editor: KeyboardSettingsEditor
@@ -184,13 +186,41 @@ private struct KeyCap: View {
 private struct SoundPicker: View {
     @Binding var packID: String?
     let packs: [SoundPack]
+    /// En las teclas cambiadas: su sonido propio, si lo tiene, y qué hacer al elegir «Fichero…».
+    /// Los grupos no tienen
+    var customSound: CustomSound?
+    var chooseFile: (() -> Void)?
+
+    private enum Choice: Hashable {
+        case pack(String?)
+        case custom
+        case file
+    }
+
+    private var choice: Binding<Choice> {
+        Binding(
+            get: { customSound == nil ? .pack(packID) : .custom },
+            set: { choice in
+                switch choice {
+                case let .pack(id): packID = id
+                case .file: chooseFile?()
+                case .custom: break
+                }
+            }
+        )
+    }
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 4) {
-            Picker("Pack", selection: $packID) {
-                Text("Del pack").tag(String?.none)
+            Picker("Pack", selection: choice) {
+                Text("Del pack").tag(Choice.pack(nil))
                 Divider()
-                ForEach(packs) { Text($0.name).tag(String?.some($0.id)) }
+                ForEach(packs) { Text($0.name).tag(Choice.pack($0.id)) }
+                if chooseFile != nil {
+                    Divider()
+                    if let customSound { Text(verbatim: customSound.name).tag(Choice.custom) }
+                    Text("Fichero…").tag(Choice.file)
+                }
             }
             .labelsHidden()
             // El resto de la fila se centra con el desplegable, no con el texto de debajo
@@ -237,19 +267,57 @@ private struct ChangedKeyRow: View {
     let packs: [SoundPack]
     let changed: ChangedKey
 
+    /// Con un fichero de audio encima, la fila se resalta
+    @State private var isDropTarget = false
+
     private var isCapturingSource: Bool { editor.keyCapture == .source(of: changed.key) }
     private func released() { editor.tuningDidChange(changed.key) }
 
     var body: some View {
         VStack(spacing: 14) {
             choice
+            notice
             HStack(spacing: 24) {
                 SettingSlider.pitch(changed.pitch, set: { editor.tune(changed.key, pitch: $0) }, released: released)
                 SettingSlider.volume(changed.volume, set: { editor.tune(changed.key, volume: $0) }, released: released)
             }
         }
         .sectionPadding()
-        .background(Color.primary.opacity(isCapturingSource ? 0.12 : 0.06), in: .rect(cornerRadius: 12))
+        .background(
+            Color.primary.opacity(isCapturingSource || isDropTarget ? 0.12 : 0.06), in: .rect(cornerRadius: 12)
+        )
+        .overlay {
+            if isDropTarget { RoundedRectangle(cornerRadius: 12).strokeBorder(Color.accentColor, lineWidth: 2) }
+        }
+        .onDrop(of: [.fileURL], delegate: AudioFileDrop(isTargeted: $isDropTarget) { url in
+            editor.setCustomSound(of: changed.key, from: url)
+        })
+    }
+
+    /// Lo que se torció con el sonido propio, si algo
+    @ViewBuilder private var notice: some View {
+        if let file = editor.unreadableFiles[changed.key] {
+            Text("No se puede leer «\(file)» como audio")
+                .foregroundStyle(.red)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else if let sound = changed.customSound, editor.missingCopies.contains(sound) {
+            Text("No está el fichero «\(sound.name)»: suena como en el pack")
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    /// El selector de ficheros de audio del disco
+    private func chooseFile() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.audio]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.prompt = String(localized: "Elegir")
+        panel.begin { response in
+            guard response == .OK, let url = panel.url else { return }
+            editor.setCustomSound(of: changed.key, from: url)
+        }
     }
 
     /// La tecla y su papelera, a la izquierda; a la derecha, el pack y la tecla de ese pack. Así el
@@ -287,8 +355,49 @@ private struct ChangedKeyRow: View {
             }
             SoundPicker(
                 packID: Binding(get: { changed.packID }, set: { editor.changePack(of: changed.key, to: $0) }),
-                packs: packs
+                packs: packs,
+                customSound: changed.customSound,
+                chooseFile: chooseFile
             )
+        }
+    }
+}
+
+/// Soltar un fichero de audio en una fila. El Finder no dice de qué tipo es lo que arrastras, solo
+/// que es un fichero: se mira su extensión al entrar, y la fila solo se resalta y lo coge si es audio
+private struct AudioFileDrop: DropDelegate {
+    @Binding var isTargeted: Bool
+    let drop: @MainActor (URL) -> Void
+
+    func validateDrop(info: DropInfo) -> Bool {
+        info.hasItemsConforming(to: [.fileURL])
+    }
+
+    func dropEntered(info: DropInfo) {
+        let isTargeted = $isTargeted
+        audioFile(in: info) { isTargeted.wrappedValue = $0 != nil }
+    }
+
+    func dropExited(info: DropInfo) {
+        isTargeted = false
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        guard isTargeted else { return false }
+        isTargeted = false
+        let drop = drop
+        audioFile(in: info) { url in
+            if let url { drop(url) }
+        }
+        return true
+    }
+
+    /// El fichero que arrastras, si es audio. Llega después: el Finder lo da por detrás
+    private func audioFile(in info: DropInfo, then: @escaping @MainActor @Sendable (URL?) -> Void) {
+        guard let provider = info.itemProviders(for: [.fileURL]).first else { return then(nil) }
+        _ = provider.loadObject(ofClass: URL.self) { url, _ in
+            let isAudio = url.flatMap { UTType(filenameExtension: $0.pathExtension) }?.conforms(to: .audio) ?? false
+            Task { @MainActor in then(isAudio ? url : nil) }
         }
     }
 }
