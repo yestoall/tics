@@ -45,6 +45,10 @@ choose.
 - **Press and release** sound different, and holding a key down sounds softer on each repeat.
 - **Every keystroke a little different**: the pitch shifts slightly from one press to the next,
   like a real keyboard. Turn it off with **Vary Pitch**, in **Set Up Keyboard…**.
+- **Your keyboard, your way**: in **Set Up Keyboard…**, make a group of keys (regular keys,
+  Space, Return, or the wide keys), a single key, or a shortcut sound like another pack, with its
+  own pitch and volume. You can also give a key or shortcut a sound of your own: choose **File…**
+  or drag an audio file onto it.
 - **Clicks, drags and scrolling**: your mouse makes sounds too, at the same volume as your
   keyboard. Dragging sounds like a ratchet, faster the quicker you move, and the scroll wheel
   clicks with every notch.

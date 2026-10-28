@@ -44,6 +44,10 @@ que elijas.
   repetición.
 - **Cada pulsación, un poco distinta**: el tono cambia un poco de una vez a otra, como en un
   teclado de verdad. Se apaga con **Variar el tono**, en **Configurar teclado…**.
+- **Tu teclado, a tu manera**: en **Configurar teclado…**, haz que un grupo de teclas (las
+  normales, el espacio, Return o las anchas), una sola tecla o un atajo suenen como los de otro
+  pack, con su tono y su volumen. A una tecla o un atajo también le puedes poner un sonido tuyo:
+  elige **Fichero…** o arrastra encima un fichero de audio.
 - **Clics, arrastres y rueda**: el ratón suena también, a la misma altura que el teclado que
   tienes. Arrastrar suena como un trinquete, más seguido cuanto más deprisa, y la rueda, a cada
   muesca.
